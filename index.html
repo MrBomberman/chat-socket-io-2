@@ -1,9 +1,44 @@
 <!DOCTYPE html>
 <html>
 
-<head>
+<head> 
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Socket.IO chat</title>
   <style>
+      :root {
+      --dark-color-a: #667aff;
+      --dark-color-b: #7386ff;
+      --light-color: #e6e9ff;
+      --success-color: #5cb85c;
+      --error-color: #d9534f;
+    }
+
+    .meta {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--dark-color-b);
+      opacity: 0.7;
+      margin-bottom: 7px;
+    }
+
+    .meta span {
+      color: #777;
+    }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      background-color: var(--light-color);
+      border-radius: 5px;
+    }
+
+    .text {
+      font-size: 0.6em;
+      margin: 2px;
+    } 
+
     body {
       margin: 0;
       padding-bottom: 3rem;
@@ -11,14 +46,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      height: 90vh;
       background-color: #EEEEEE;
+      font-size: 28px;
     }
 
     #mainBlock {
       border: 0.5rem solid #667AFF;
       border-radius: 6px;
-      width: 450px;
+      width: 550px;
     }
 
     #form {
@@ -29,7 +65,7 @@
       left: 0;
       right: 0;
       display: flex;
-      height: 3rem;
+      height: 2em;
       box-sizing: border-box;
       backdrop-filter: blur(10px);
     }
@@ -40,6 +76,7 @@
       flex-grow: 1;
       border-radius: 2rem;
       margin: 0.25rem;
+      font-size: 0.75em;
     }
 
     #input:focus {
@@ -54,6 +91,7 @@
       border-radius: 3px;
       outline: none;
       color: #fff;
+      font-size: 0.75em;
     }
 
     #messages {
@@ -79,7 +117,7 @@
       color: #fff;
     }
     .messageBlock {
-      height: 500px;
+      height: 50vh;
       overflow-y: auto;
       background-color: #fff;
     }
@@ -88,48 +126,173 @@
       border-radius: 6px;
       background-color: #386BC0;
       height: 30px;
+      font-size: 0.75em;
     }
+      .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+
+  /* Modal Content */
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    font-size: 2em;
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btnBlock {
+    display: flex;
+    justify-content: space-between;
+  }
+  #inputForName {
+    height: 2em;
+    font-size: 0.5em;
+  }
+  @media (max-width: 400px ) {
+    .messageBlock {
+      height: 60vh;
+    }
+    #mainBlock {
+      width: 350px;
+    }
+    #input {
+      font-size: 0.5em;
+    }
+    .startBtn {
+      font-size: 0.5em;
+    }
+  }
   </style>
 </head>
 
 <body>
   <div id="mainBlock">
     <div class="header">
-      <h3>Infobip chat</h3>
-      <button class="startBtn">START CHAT</button>
+      <h3 style="margin: 10px">Infobip chat</h3>
+      <button id="btnToStart" class="startBtn">START CHAT</button>
     </div>
     <div class="messageBlock">
       <ul id="messages"></ul>
     </div>
     <div>
       <form id="form" action="">
-        <input id="input" autocomplete="off" /><button>Send</button>
+        <input id="input" autocomplete="off" disabled/><button>Send</button>
       </form>
     </div>
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <input id="inputForName" required placeholder="Enter your name..."/>
+        <div class="btnBlock">
+          <span class="close" id="closeModal">Close</span>
+          <span class="close" id="okModal">Ok</span>
+        </div>
+      </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
     var socket = io();
-
+    let startChat = false;
+    let currentUser = '';
     var messages = document.getElementById('messages');
     var form = document.getElementById('form');
     var input = document.getElementById('input');
+    var startBtn = document.querySelector('#btnToStart');
+    var modal = document.getElementById("myModal");
+    var btnToCloseModal = document.querySelector('#closeModal');
+    var btnToSendName = document.querySelector('#okModal');
+    var inputForName = document.querySelector('#inputForName');
+
+    socket.emit('check url', window.location.href);
+    socket.on('open input', () => {
+      input.disabled = false
+    })
+
+    startBtn.addEventListener('click', () => {
+      modal.style.display = "block";
+    })
+
+    btnToCloseModal.addEventListener('click', () => {
+      modal.style.display = "none";
+    })
+
+    btnToSendName.addEventListener('click', (e) => {
+      e.preventDefault();
+      startChat = true;
+      if(startChat){
+        socket.emit('join room' , inputForName.value, window.location.href)
+        socket.on('add hash', (hash) => {
+          window.location.hash = hash;
+        })
+        inputForName.value = '';
+        modal.style.display = "none";
+        input.disabled = false;
+      }
+    })
+
+    socket.on('chat message', function (msg) {
+      outputMessage(msg)
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (input.value) {
         socket.emit('chat message', input.value);
+        socket.emit('getNameOfUser', window.location.href);
         input.value = '';
       }
     });
 
-    socket.on('chat message', function (msg) {
-      var item = document.createElement('li');
-      item.textContent = msg;
-      messages.appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
-    });
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    function outputMessage(message){
+      const div = document.createElement('div');
+      div.classList.add('message');
+      div.innerHTML = `
+      <p class="meta">${message.username} <span>${message.time}</span></p>
+      <p class="text">
+          ${message.text}
+      </p>`;
+      messages.appendChild(div)
+    }
+
   </script>
 </body>
 
