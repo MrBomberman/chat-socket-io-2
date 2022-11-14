@@ -1,19 +1,30 @@
 const formatMessage = require('./utils/messages');
 const { userJoin, checkCurrentUser, getCurrentUser } = require('./utils/users');
+const postMessage = require('./utils/postMessage');
 
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
+const cors = require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true,            //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
 
 const botName = 'Infobip support'
 
 // app.static(__dirname);
-
+app.use(cors(corsOptions)) // Use this after the variable declaration
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
+
+app.get('/about', () => {
+  console.log('about')
+})
 
 io.on('connection', (socket) => {
   socket.on('check url', (url) => {
@@ -40,7 +51,7 @@ io.on('connection', (socket) => {
     // socket.broadcast
     //   .to(currentUser.id)
   });
-    
+  
 
   socket.on('chat message', async (msg, id) => {
     // socket.on('getNameOfUser', async (url) => {
@@ -52,8 +63,8 @@ io.on('connection', (socket) => {
     // const users = getCurrentUser();
     console.log(msg, id)
     await io.to(id).emit('chat message', formatMessage(id, msg), id); // to send message everyone in the chat
-
+    await postMessage(msg);
   });
 });
 
-http.listen(port);
+http.listen(port, '192.168.0.10');

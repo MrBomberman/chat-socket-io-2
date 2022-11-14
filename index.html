@@ -247,6 +247,7 @@
       modal.style.display = "none";
     })
 
+
     btnToSendName.addEventListener('click', (e) => {
       e.preventDefault();
       startChat = true;
@@ -261,8 +262,9 @@
       }
     })
 
-    socket.on('chat message', async function (msg) {
+    socket.on('chat message',async function (msg) {
       await outputMessage(msg)
+      // postMessage(msg)
       window.scrollTo(0, document.body.scrollHeight);
     });
 
