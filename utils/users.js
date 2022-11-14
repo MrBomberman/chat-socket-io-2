@@ -16,7 +16,7 @@ function checkCurrentUser(id) {
 }
 
 function getCurrentUser(id){
-    return users.find(user => user.id === id)
+    return users
 }
 
 module.exports = {

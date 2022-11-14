@@ -219,6 +219,7 @@
       </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
+  <script type="commonjs" src="./utils/users.js"></script>
 
   <script>
     var socket = io();
@@ -260,17 +261,23 @@
       }
     })
 
-    socket.on('chat message', function (msg) {
-      outputMessage(msg)
+    socket.on('chat message', async function (msg) {
+      await outputMessage(msg)
       window.scrollTo(0, document.body.scrollHeight);
     });
 
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
+      let currentUserId = '';
+      socket.on('user exist', (id) => {
+        currentUser = id;
+      })
+      const indexOfStartId = window.location.href.indexOf('#');
+      currentUserId = window.location.href.slice(indexOfStartId+1)
+      console.log(currentUserId)
       if (input.value) {
-        socket.emit('chat message', input.value);
-        socket.emit('getNameOfUser', window.location.href);
+        await socket.emit('chat message', input.value , currentUserId);
         input.value = '';
       }
     });
@@ -282,11 +289,14 @@
       }
     }
 
-    function outputMessage(message){
+    function outputMessage(message, id){
       const div = document.createElement('div');
       div.classList.add('message');
+      // <span>${message.time}</span>
       div.innerHTML = `
-      <p class="meta">${message.username} <span>${message.time}</span></p>
+      <p class="meta">${message.username} 
+        <span>${message.time}</span>
+        </p>
       <p class="text">
           ${message.text}
       </p>`;
