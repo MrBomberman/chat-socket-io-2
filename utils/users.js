@@ -10,17 +10,23 @@ function userJoin(id, username) {
     return user;
 }
 
-function checkCurrentUser(id) {
+function getCurrentUser(id) {
     const user = users.filter(u => u.id === id);
     return user
 }
 
-function getCurrentUser(id){
+function getAllUsers(){
     return users
+}
+
+function getUserByPhone(phone){
+    const user = users.filter(u => u.username === phone)
+    return user
 }
 
 module.exports = {
     userJoin,
-    checkCurrentUser,
-    getCurrentUser
+    getCurrentUser,
+    getAllUsers,
+    getUserByPhone
 }

@@ -1,9 +1,10 @@
 const formatMessage = require('./utils/messages');
-const { userJoin, checkCurrentUser, getCurrentUser } = require('./utils/users');
+const { userJoin, getCurrentUser, getAllUsers, getUserByPhone } = require('./utils/users');
 const postMessage = require('./utils/postMessage');
 
 const express = require('express');
 const app = express();
+const router = express.Router();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
@@ -18,43 +19,50 @@ const botName = 'Infobip support'
 
 // app.static(__dirname);
 app.use(cors(corsOptions)) // Use this after the variable declaration
+app.use(express.json())
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/about', () => {
-  console.log('about')
+app.post('/postMessage', async (req, res) => {
+  const users = getAllUsers();
+  console.log(req.body)
+  const body = req.body;
+  const numberFrom = body.from;
+  const userByPhone = getUserByPhone(numberFrom)[0]
+  res.send(userByPhone)
+  await io.to(userByPhone.id).emit('chat message', formatMessage(`Delta agent ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
 })
 
-io.on('connection', (socket) => {
-  socket.on('check url', (url) => {
+io.on('connection', (client) => {
+  client.on('check url', (url) => {
     const indexOfStartId = url.indexOf('#');
     const id = url.slice(indexOfStartId+1)
-    const currentUser = checkCurrentUser(id)[0];
+    const currentUser = getCurrentUser(id)[0];
     console.log(currentUser)
     if(currentUser){
-      socket.emit('chat message', formatMessage(botName, 'Welcome to chat again!'), currentUser.id )
-      socket.emit('open input')
-      socket.emit('user exist', currentUser.id)
-      socket.join(currentUser.id)
-      socket.broadcast
+      client.emit('chat message', formatMessage(botName, 'Welcome to chat again!'), currentUser.id )
+      client.emit('open input')
+      client.emit('user exist', currentUser.id)
+      client.join(currentUser.id)
+      client.broadcast
         .to(currentUser.id)
     } 
   })
 
-  socket.on('join room', (name, url) => {
-    const currentUser = userJoin(socket.id , name)
+  client.on('join room', (name, url) => {
+    const currentUser = userJoin(client.id , name)
     console.log('join')
-    socket.emit('add hash', currentUser.id)
-    socket.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
-    // socket.join(currentUser.id)
-    // socket.broadcast
+    client.emit('add hash', currentUser.id)
+    client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
+    // client.join(currentUser.id)
+    // client.broadcast
     //   .to(currentUser.id)
   });
   
 
-  socket.on('chat message', async (msg, id) => {
-    // socket.on('getNameOfUser', async (url) => {
+  client.on('chat message', async (msg, id) => {
+    // client.on('getNameOfUser', async (url) => {
     //   const indexOfStartId = url.indexOf('#');
     //   const id = url.slice(indexOfStartId+1)
     //   const currentUser = checkCurrentUser(id)[0];
@@ -63,8 +71,8 @@ io.on('connection', (socket) => {
     // const users = getCurrentUser();
     console.log(msg, id)
     await io.to(id).emit('chat message', formatMessage(id, msg), id); // to send message everyone in the chat
-    await postMessage(msg);
+    // await postMessage(msg);
   });
 });
 
-http.listen(port, '192.168.0.10');
+http.listen(port);
