@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Socket.IO chat</title>
+  <title>Delta chat</title>
   <style>
       :root {
       --dark-color-a: #667aff;
@@ -176,6 +176,11 @@
     height: 2em;
     font-size: 0.5em;
   }
+  .moreBtn {
+    text-align: center;
+    cursor: pointer;
+    color: #4e87b8;
+  }
   @media (max-width: 400px ) {
     .messageBlock {
       height: 60vh;
@@ -196,10 +201,11 @@
 <body>
   <div id="mainBlock">
     <div class="header">
-      <h3 style="margin: 10px">Infobip chat</h3>
+      <h3 style="margin: 10px">Delta chat</h3>
       <button id="btnToStart" class="startBtn">START CHAT</button>
     </div>
     <div class="messageBlock">
+      <!-- <div class='moreBtn'>More</div> -->
       <ul id="messages"></ul>
     </div>
     <div>
@@ -211,7 +217,7 @@
 
       <!-- Modal content -->
       <div class="modal-content">
-        <input id="inputForName" required placeholder="Enter your name..."/>
+        <input id="inputForName" required placeholder="Type your phone..."/>
         <div class="btnBlock">
           <span class="close" id="closeModal">Close</span>
           <span class="close" id="okModal">Ok</span>
@@ -233,10 +239,23 @@
     var btnToCloseModal = document.querySelector('#closeModal');
     var btnToSendName = document.querySelector('#okModal');
     var inputForName = document.querySelector('#inputForName');
+    var btnMore = document.querySelector('.moreBtn');
+    var messageBlock = document.querySelector('.messageBlock');
 
     socket.emit('check url', window.location.href);
+
+    socket.on('navigate to home page', () => {
+      window.location.href = `http://${window.location.host}`;
+    })
+
     socket.on('open input', () => {
       input.disabled = false
+      startBtn.disabled = true;
+    })
+
+    socket.on('show message', async (messages) => {
+      console.log(messages)
+      messages.forEach(item => outputOldMessage(item));
     })
 
     startBtn.addEventListener('click', () => {
@@ -247,12 +266,15 @@
       modal.style.display = "none";
     })
 
+    // btnMore.addEventListener('click', () => {
+    //   ['1', '2', '3'].forEach(item => outputMessage({id: 'Kirill', message: 'Hey'}));
+    // })
 
     btnToSendName.addEventListener('click', (e) => {
       e.preventDefault();
       startChat = true;
       if(startChat){
-        socket.emit('join room' , inputForName.value, window.location.href)
+        socket.emit('join room' , inputForName.value)
         socket.on('add hash', (hash) => {
           window.location.hash = hash;
         })
@@ -264,8 +286,7 @@
 
     socket.on('chat message',async function (msg) {
       await outputMessage(msg)
-      // postMessage(msg)
-      window.scrollTo(0, document.body.scrollHeight);
+      messageBlock.scrollTo(0, messageBlock.scrollHeight);
     });
 
 
@@ -289,6 +310,20 @@
       if (event.target == modal) {
         modal.style.display = "none";
       }
+    }
+
+    function outputOldMessage(oldMessage){
+      const div = document.createElement('div');
+      div.classList.add('message');
+      // <span>${message.time}</span>
+      div.innerHTML = `
+      <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
+        <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
+        </p>
+      <p class="text">
+          ${oldMessage.content.text}
+      </p>`;
+      messages.appendChild(div)
     }
 
     function outputMessage(message, id){

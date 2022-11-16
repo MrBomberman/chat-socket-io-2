@@ -1,6 +1,6 @@
 const fetch =  require("node-fetch");
 
-async function postMessage(message){
+async function postMessage(message, phone){
     
     const response = await fetch('http://46.138.245.127:7557/message/send', {
             method: 'POST',
@@ -10,7 +10,7 @@ async function postMessage(message){
             },
             body: `{
                 "AgentName" : "Smith",
-                "ClientNumber": "79091533461",
+                "ClientNumber": "${phone}",
                 "Channel" : "WHATSAPP",
                 "ContentType" : "TEXT",
                 "ContentMessage" : {
