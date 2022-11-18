@@ -117,7 +117,7 @@
       color: #fff;
     }
     .messageBlock {
-      height: 50vh;
+      height: 60vh;
       overflow-y: auto;
       background-color: #fff;
     }
@@ -202,7 +202,7 @@
   <div id="mainBlock">
     <div class="header">
       <h3 style="margin: 10px">Delta chat</h3>
-      <button id="btnToStart" class="startBtn">START CHAT</button>
+      <!-- <button id="btnToStart" class="startBtn">START CHAT</button> -->
     </div>
     <div class="messageBlock">
       <!-- <div class='moreBtn'>More</div> -->
@@ -213,9 +213,9 @@
         <input id="input" autocomplete="off" disabled/><button>Send</button>
       </form>
     </div>
-    <div id="myModal" class="modal">
+    <!-- <div id="myModal" class="modal">
 
-      <!-- Modal content -->
+     
       <div class="modal-content">
         <input id="inputForName" required placeholder="Type your phone..."/>
         <div class="btnBlock">
@@ -223,7 +223,7 @@
           <span class="close" id="okModal">Ok</span>
         </div>
       </div>
-  </div>
+  </div> -->
   <script src="/socket.io/socket.io.js"></script>
   <script type="commonjs" src="./utils/users.js"></script>
 
@@ -250,7 +250,7 @@
 
     socket.on('open input', () => {
       input.disabled = false
-      startBtn.disabled = true;
+      // startBtn.disabled = true;
     })
 
     socket.on('show message', async (messages) => {
@@ -258,31 +258,31 @@
       messages.forEach(item => outputOldMessage(item));
     })
 
-    startBtn.addEventListener('click', () => {
-      modal.style.display = "block";
-    })
+    // startBtn.addEventListener('click', () => {
+    //   modal.style.display = "block";
+    // })
 
-    btnToCloseModal.addEventListener('click', () => {
-      modal.style.display = "none";
-    })
+    // btnToCloseModal.addEventListener('click', () => {
+    //   modal.style.display = "none";
+    // })
 
     // btnMore.addEventListener('click', () => {
     //   ['1', '2', '3'].forEach(item => outputMessage({id: 'Kirill', message: 'Hey'}));
     // })
 
-    btnToSendName.addEventListener('click', (e) => {
-      e.preventDefault();
-      startChat = true;
-      if(startChat){
-        socket.emit('join room' , inputForName.value)
-        socket.on('add hash', (hash) => {
-          window.location.hash = hash;
-        })
-        inputForName.value = '';
-        modal.style.display = "none";
-        input.disabled = false;
-      }
-    })
+    // btnToSendName.addEventListener('click', (e) => {
+    //   e.preventDefault();
+    //   startChat = true;
+    //   if(startChat){
+    //     // socket.emit('join room' , inputForName.value)
+    //     // socket.on('add hash', (hash) => {
+    //     //   window.location.hash = hash;
+    //     // })
+    //     // inputForName.value = '';
+    //     // modal.style.display = "none";
+    //     // input.disabled = false;
+    //   }
+    // })
 
     socket.on('chat message',async function (msg) {
       await outputMessage(msg)
@@ -296,7 +296,9 @@
       socket.on('user exist', (id) => {
         currentUser = id;
       })
+
       const indexOfStartId = window.location.href.indexOf('#');
+      // console.log(indexOfStartId)
       currentUserId = window.location.href.slice(indexOfStartId+1)
       console.log(currentUserId)
       if (input.value) {

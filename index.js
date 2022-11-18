@@ -25,6 +25,10 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/startChat', (req, res) => {
+  res.sendFile(__dirname + '/startChat.html')
+})
+
 app.post('/postMessage', async (req, res) => {
   const users = getAllUsers();
   console.log(req.body)
@@ -66,11 +70,12 @@ io.on('connection', (client) => {
   client.on('join room', async (name) => {
     const currentUser = userJoin(client.id , name)
     console.log('join')
-    client.emit('add hash', currentUser.id)
+    await client.emit('add hash', currentUser.id)
+    console.log(currentUser.id)
     const response = await getMessages(name)
     const messages = await response.json();
-    client.emit('show message', messages)
-    client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
+    await client.emit('show message', messages)
+    await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
     client.emit('open input')
     
     // client.join(currentUser.id)
@@ -80,12 +85,6 @@ io.on('connection', (client) => {
   
 
   client.on('chat message', async (msg, id) => {
-    // client.on('getNameOfUser', async (url) => {
-    //   const indexOfStartId = url.indexOf('#');
-    //   const id = url.slice(indexOfStartId+1)
-    //   const currentUser = checkCurrentUser(id)[0];
-    //   // await io.to(currentUser.id).emit('chat message', formatMessage(currentUser.id, msg)); // to send message everyone in the chat
-    // });
     const user = getCurrentUser(id)[0];
     console.log(msg, id)
     await io.to(id).emit('chat message', formatMessage(id, msg), id); // to send message everyone in the chat

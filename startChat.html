@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start chat</title>
+    <style>
+              .modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+
+  /* Modal Content */
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    font-size: 2em;
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .userInfo {
+      background-color: antiquewhite;
+      cursor: pointer;
+      color: grey;
+  }
+    </style>
+</head>
+<body>
+    <div>
+        <button class="startBtn">Start chat</button>
+    </div>
+
+
+    <div id="myModal" class="modal">
+
+        <div class="modal-content">
+            <div class='userInfo'><span>79091533461 </span><span>/ Kirill</span></div>
+            <div class="btnBlock">
+              <span class="close" id="closeModal">Close</span>
+            </div>
+          </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const startBtn = document.querySelector('.startBtn');
+        const modal = document.querySelector('.modal');
+        const closeBtn = document.querySelector('#closeModal');
+        const userInfo = document.querySelector('.userInfo');
+
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        })
+
+        userInfo.addEventListener('click', async () => {
+            await socket.emit('join room' , '79091533461')
+            await socket.on('add hash', (hash) => {
+                window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+             "height=800,width=600,top=300px", menubar = 'yes')
+                // window.location.hash = hash;
+            })
+            // await window.open(`http://${window.location.host}${window.location.hash}` , 'Delta chat',
+            //  "height=800,width=600,top=300px", menubar = 'yes')
+        })
+        startBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        })
+    </script>
+</body>
+</html>
