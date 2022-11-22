@@ -10,6 +10,7 @@ const io = require('socket.io')(http);
 const port = process.env.PORT || 6002;
 const cors = require("cors");
 const getMessages = require('./utils/getMessages');
+const startConversation = require('./utils/startConversation');
 const corsOptions ={
    origin:'*', 
    credentials:true,            //access-control-allow-credentials:true
@@ -37,7 +38,7 @@ app.post('/postMessage', async (req, res) => {
   const numberFrom = body.from;
   const userByPhone = getUserByPhone(numberFrom)[0];
   res.send(userByPhone)
-  await io.to(userByPhone.id).emit('chat message', formatMessage(`Delta agent ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+  await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
 })
 
 io.on('connection', (client) => {
@@ -52,7 +53,7 @@ io.on('connection', (client) => {
     console.log('all users after reload' , users)
     console.log(currentUser)
     if(currentUser){
-      const response = await getMessages(currentUser.username)
+      const response = await getMessages(currentUser.phone)
       const messages = await response.json();
       client.emit('show message', messages)
       client.emit('chat message', formatMessage(botName, 'Welcome to chat again!'), currentUser.id )
@@ -67,12 +68,20 @@ io.on('connection', (client) => {
     }
   })
 
-  client.on('join room', async (name) => {
-    const currentUser = userJoin(client.id , name)
+  client.on('join room', async (phone) => {
+    const conversationInfo = await startConversation(phone);
+    console.log('Response', conversationInfo)
+    let currentUser;
+    const userExist = getUserByPhone(phone)[0];
+    if(Boolean(userExist)){
+      currentUser = userExist;
+    } else {
+      currentUser = userJoin(conversationInfo.uuid , phone)
+    }
     console.log('join')
     await client.emit('add hash', currentUser.id)
     console.log(currentUser.id)
-    const response = await getMessages(name)
+    const response = await getMessages(phone)
     const messages = await response.json();
     await client.emit('show message', messages)
     await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
@@ -87,8 +96,8 @@ io.on('connection', (client) => {
   client.on('chat message', async (msg, id) => {
     const user = getCurrentUser(id)[0];
     console.log(msg, id)
-    await io.to(id).emit('chat message', formatMessage(id, msg), id); // to send message everyone in the chat
-    await postMessage(msg, user.username);
+    await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat
+    await postMessage(msg, user.phone);
   });
 });
 

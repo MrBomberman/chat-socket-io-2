@@ -2,8 +2,8 @@ const users = [];
 
 // join user to chat
 
-function userJoin(id, username) {
-    const user = { id, username};
+function userJoin(id, phone) {
+    const user = { id, phone};
 
     users.push(user)
 
@@ -20,7 +20,7 @@ function getAllUsers(){
 }
 
 function getUserByPhone(phone){
-    const user = users.filter(u => u.username === phone)
+    const user = users.filter(u => u.phone === phone)
     return user
 }
 
