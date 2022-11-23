@@ -89,6 +89,7 @@
         })
 
         userInfo.addEventListener('click', async () => {
+            // 77472888695
             await socket.emit('join room' , '79091533461')
             await socket.on('add hash', (hash) => {
                 window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',

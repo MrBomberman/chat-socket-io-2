@@ -2,7 +2,9 @@ const formatMessage = require('./utils/messages');
 const { userJoin, getCurrentUser, getAllUsers, getUserByPhone } = require('./utils/users');
 const postMessage = require('./utils/postMessage');
 
+
 const express = require('express');
+const { writeFile } = require("fs");
 const app = express();
 const router = express.Router();
 const http = require('http').Server(app);
@@ -11,6 +13,7 @@ const port = process.env.PORT || 6002;
 const cors = require("cors");
 const getMessages = require('./utils/getMessages');
 const startConversation = require('./utils/startConversation');
+const postDocumentPDF = require('./utils/postDocumentPDF');
 const corsOptions ={
    origin:'*', 
    credentials:true,            //access-control-allow-credentials:true
@@ -68,6 +71,15 @@ io.on('connection', (client) => {
     }
   })
 
+  client.on('upload', (file, callback) => {
+    console.log(file); // <Buffer 25 50 44 ...>
+
+    // save the content to the disk, for example
+    writeFile("/tmp/upload", file, (err) => {
+      callback({ message: err ? "failure" : "success" });
+    })
+  })
+
   client.on('join room', async (phone) => {
     const conversationInfo = await startConversation(phone);
     console.log('Response', conversationInfo)
@@ -93,11 +105,15 @@ io.on('connection', (client) => {
   });
   
 
-  client.on('chat message', async (msg, id) => {
+  client.on('chat message', async (msg, id, messageStatus) => {
     const user = getCurrentUser(id)[0];
-    console.log(msg, id)
+    console.log(msg, id);
     await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat
-    await postMessage(msg, user.phone);
+    if(Boolean(msg.includes('/dossier/guid')) && messageStatus === 'PDF'){
+      await postDocumentPDF(msg, user.phone)
+    } else {
+      await postMessage(msg, user.phone);
+    }
   });
 });
 

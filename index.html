@@ -67,6 +67,7 @@
       display: flex;
       height: 2em;
       box-sizing: border-box;
+      align-items: center;
       backdrop-filter: blur(10px);
     }
 
@@ -77,6 +78,7 @@
       border-radius: 2rem;
       margin: 0.25rem;
       font-size: 0.75em;
+      height: 40px;
     }
 
     #input:focus {
@@ -92,6 +94,7 @@
       outline: none;
       color: #fff;
       font-size: 0.75em;
+      height: 40px;
     }
 
     #messages {
@@ -195,6 +198,13 @@
       font-size: 0.5em;
     }
   }
+
+  .select {
+    background-color: #333;
+    color: #fff;
+    border-radius: 6px;
+    height: 40px;
+  }
   </style>
 </head>
 
@@ -210,7 +220,14 @@
     </div>
     <div>
       <form id="form" action="">
-        <input id="input" autocomplete="off" disabled/><button>Send</button>
+        <input id="input" autocomplete="off" disabled/>
+        <!-- <input type="file" onchange="upload(this.files)" 
+         accept='.pdf'/> -->
+         <select class='select'>
+           <option value='PDF' class='optionPdf'>PDF</option>
+           <option value='TEXT' class='optionText' selected>TEXT</option>
+         </select>
+         <button>Send</button>
       </form>
     </div>
     <!-- <div id="myModal" class="modal">
@@ -241,12 +258,22 @@
     var inputForName = document.querySelector('#inputForName');
     var btnMore = document.querySelector('.moreBtn');
     var messageBlock = document.querySelector('.messageBlock');
+    var select = document.querySelector('.select');
+    var optionPdf = select.querySelector('.optionPdf');
+    var optionText = select.querySelector('.optionText');
+
 
     socket.emit('check url', window.location.href);
 
     socket.on('navigate to home page', () => {
       window.location.href = `http://${window.location.host}`;
     })
+
+
+    select.addEventListener('click', (e) => {
+      console.log(e.target.value)
+    })
+
 
     socket.on('open input', () => {
       input.disabled = false
@@ -300,10 +327,12 @@
       const indexOfStartId = window.location.href.indexOf('#');
       // console.log(indexOfStartId)
       currentUserId = window.location.href.slice(indexOfStartId+1)
-      console.log(currentUserId)
+      console.log(currentUserId);
+      let messageStatus = select.value;
       if (input.value) {
-        await socket.emit('chat message', input.value , currentUserId);
+        await socket.emit('chat message', input.value , currentUserId, messageStatus);
         input.value = '';
+        select.value = 'TEXT'
       }
     });
 
@@ -316,15 +345,27 @@
 
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');
+      console.log(oldMessage)
       div.classList.add('message');
       // <span>${message.time}</span>
-      div.innerHTML = `
-      <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
-        <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
-        </p>
-      <p class="text">
-          ${oldMessage.content.text}
-      </p>`;
+      if(oldMessage.contentType === 'DOCUMENT'){
+          div.innerHTML = `
+        <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
+          <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
+          </p>
+        <p class="text">
+            <a href='${oldMessage.content.url}'
+            target="_blank">Document</a>
+        </p>`;
+      } else {
+          div.innerHTML = `
+        <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
+          <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
+          </p>
+        <p class="text">
+            ${oldMessage.content.text}
+        </p>`;
+      }
       messages.appendChild(div)
     }
 
@@ -332,16 +373,32 @@
       console.log(message)
       const div = document.createElement('div');
       div.classList.add('message');
-      // <span>${message.time}</span>
-      div.innerHTML = `
-      <p class="meta">${message.username} 
-        <span>${message.time}</span>
-        </p>
-      <p class="text">
-          ${message.text}
-      </p>`;
+      if(Boolean(message.text.includes('/dossier/guid'))){
+          div.innerHTML = `
+        <p class="meta">${message.username} 
+          <span>${message.time}</span>
+          </p>
+        <p class="text">
+          <a href='${message.text}'
+              target="_blank">Document</a>
+        </p>`;
+      } else {
+          div.innerHTML = `
+        <p class="meta">${message.username} 
+          <span>${message.time}</span>
+          </p>
+        <p class="text">
+            ${message.text}
+        </p>`;
+      }
       messages.appendChild(div)
     }
+
+    function upload(files) {
+        socket.emit("upload", files[0], (status) => {
+          console.log(status);
+        });
+      }
 
   </script>
 </body>
