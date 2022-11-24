@@ -243,7 +243,7 @@
   </div> -->
   <script src="/socket.io/socket.io.js"></script>
   <script type="commonjs" src="./utils/users.js"></script>
-
+  <script type="module" src="index.js"></script>
   <script>
     var socket = io();
     let startChat = false;
@@ -337,11 +337,31 @@
     });
 
 
+    socket.on('open chat window', async (info, phone) => {
+            console.log(info, phone)
+            await socket.emit('join room', phone);
+            // window.location.href = `http://${window.location.host}/#${info.uuid}`
+            window.open(`http://${window.location.host}/#${info.uuid}`, 'Delta chat',
+             "height=800,width=600,top=300px", menubar = 'yes');
+            // await socket.on('add hash', (hash) => {
+            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+            //  "height=800,width=600,top=300px", menubar = 'yes')
+            // })
+            // await socket.on('add hash', (hash) => {
+            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+            //  "height=800,width=600,top=300px", menubar = 'yes')
+            // })
+        })
+
     window.onclick = function(event) {
       if (event.target == modal) {
         modal.style.display = "none";
       }
     }
+
+    socket.on('open new chat', (info) => {
+            console.log(info)
+        })
 
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');

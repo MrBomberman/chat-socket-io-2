@@ -84,8 +84,25 @@
             }
         }
 
+
         closeBtn.addEventListener('click', () => {
             modal.style.display = 'none';
+        })
+
+        socket.on('open chat window', async (info, phone) => {
+            console.log(info, phone)
+            await socket.emit('join room', phone);
+            // window.location.href = `http://${window.location.host}/#${info.uuid}`
+            window.open(`http://${window.location.host}/#${info.uuid}`, 'Delta chat',
+             "height=800,width=600,top=300px", menubar = 'yes');
+            // await socket.on('add hash', (hash) => {
+            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+            //  "height=800,width=600,top=300px", menubar = 'yes')
+            // })
+            // await socket.on('add hash', (hash) => {
+            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+            //  "height=800,width=600,top=300px", menubar = 'yes')
+            // })
         })
 
         userInfo.addEventListener('click', async () => {
@@ -94,10 +111,7 @@
             await socket.on('add hash', (hash) => {
                 window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
              "height=800,width=600,top=300px", menubar = 'yes')
-                // window.location.hash = hash;
             })
-            // await window.open(`http://${window.location.host}${window.location.hash}` , 'Delta chat',
-            //  "height=800,width=600,top=300px", menubar = 'yes')
         })
         startBtn.addEventListener('click', () => {
             modal.style.display = 'block';

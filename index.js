@@ -44,6 +44,27 @@ app.post('/postMessage', async (req, res) => {
   await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
 })
 
+app.post('/openChat', async (req, res) => {
+  console.log(req.body)
+  let countEmptyKey = 0;
+  for(let [key, value] of Object.entries(req.body)){
+    console.log(key, value)
+    if(value.length === 0){
+      countEmptyKey = countEmptyKey + 1;
+    }
+  }
+
+  if(countEmptyKey === 0){
+    const conversationInfo = await startConversation(req.body.clientPhone)
+    // await io.emit('open new chat', req.body)
+    console.log(conversationInfo)
+    res.status(200).send(req.body)
+    await io.emit('open chat window', conversationInfo, req.body.clientPhone)
+  } else {
+    res.status(400).send(`Empty field in request !`)
+  }
+})
+
 io.on('connection', (client) => {
   client.on('check url', async (url) => {
     const indexOfStartId = url.indexOf('#');
@@ -59,7 +80,7 @@ io.on('connection', (client) => {
       const response = await getMessages(currentUser.phone)
       const messages = await response.json();
       client.emit('show message', messages)
-      client.emit('chat message', formatMessage(botName, 'Welcome to chat again!'), currentUser.id )
+      client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
       client.emit('open input')
       client.emit('user exist', currentUser.id)
       client.join(currentUser.id)
