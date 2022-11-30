@@ -57,7 +57,8 @@ app.post('/openChat', async (req, res) => {
   if(countEmptyKey === 0){
     const conversationInfo = await startConversation(req.body.clientPhone)
     // await io.emit('open new chat', req.body)
-    console.log(conversationInfo)
+    console.log((new Date()).toLocaleString('en-GB'), 
+    `Conversation info : ${conversationInfo}`);
     res.status(200).send(req.body)
     await io.emit('open chat window', conversationInfo, req.body.clientPhone)
   } else {
@@ -74,8 +75,8 @@ io.on('connection', (client) => {
     // let messages = [];
     // const messages = getMessages(currentUser.username);
     // console.log(messages)
-    console.log('all users after reload' , users)
-    console.log(currentUser)
+    console.log((new Date()).toLocaleString('en-GB'),'all users after reload' , users)
+    // console.log(currentUser)
     if(currentUser){
       const response = await getMessages(currentUser.phone)
       const messages = await response.json();
@@ -113,9 +114,16 @@ io.on('connection', (client) => {
     }
     console.log('join')
     await client.emit('add hash', currentUser.id)
-    console.log(currentUser.id)
-    const response = await getMessages(phone)
-    const messages = await response.json();
+    console.log((new Date()).toLocaleString('en-GB'), 
+    `Current user id : ${currentUser.id}`)
+    let response;
+    let messages;
+    try {
+      response = await getMessages(phone)
+      messages = await response.json();
+    } catch(e){
+      console.log((new Date()).toLocaleString('en-GB') ,e)
+    }
     await client.emit('show message', messages)
     await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
     client.emit('open input')
@@ -128,13 +136,19 @@ io.on('connection', (client) => {
 
   client.on('chat message', async (msg, id, messageStatus) => {
     const user = getCurrentUser(id)[0];
-    console.log(msg, id);
+    console.log((new Date()).toLocaleString('en-GB'), 
+    `message${msg}`, id);
     await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat
-    if(Boolean(msg.includes('/dossier/guid')) && messageStatus === 'PDF'){
-      await postDocumentPDF(msg, user.phone)
-    } else {
+    try {
       await postMessage(msg, user.phone);
+    } catch(e){
+      console.log((new Date()).toLocaleString('en-GB') , e)
     }
+    // if(Boolean(msg.includes('/dossier/guid')) && messageStatus === 'PDF'){
+    //   await postDocumentPDF(msg, user.phone)
+    // } else {
+    //   await postMessage(msg, user.phone);
+    // }
   });
 });
 

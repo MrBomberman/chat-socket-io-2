@@ -52,9 +52,10 @@
     }
 
     #mainBlock {
-      border: 0.5rem solid #667AFF;
+      border: 0.5rem solid #D5D5D5;
       border-radius: 6px;
       width: 550px;
+      font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
     }
 
     #form {
@@ -75,9 +76,8 @@
       border: none;
       padding: 0 1rem;
       flex-grow: 1;
-      border-radius: 2rem;
       margin: 0.25rem;
-      font-size: 0.75em;
+      font-size: 16px;
       height: 40px;
     }
 
@@ -86,15 +86,16 @@
     }
 
     #form>button {
-      background: #333;
-      border: none;
+      background: #3668C5;
+      border: 1px outset #3668C5;
       padding: 0 1rem;
       margin: 0.25rem;
-      border-radius: 3px;
+      border-radius: 4px;
       outline: none;
       color: #fff;
       font-size: 0.75em;
       height: 40px;
+      font-size: 16px;
     }
 
     #messages {
@@ -111,7 +112,7 @@
       background: #efefef;
     }
     .header {
-      background-color: #667AFF;
+      background-color: #D5D5D5;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
@@ -211,7 +212,7 @@
 <body>
   <div id="mainBlock">
     <div class="header">
-      <h3 style="margin: 10px">Delta chat</h3>
+      <h3 style="margin: 10px; color: black; font-size: 20px">Delta WhatsApp Business Chat</h3>
       <!-- <button id="btnToStart" class="startBtn">START CHAT</button> -->
     </div>
     <div class="messageBlock">
@@ -220,14 +221,14 @@
     </div>
     <div>
       <form id="form" action="">
-        <input id="input" autocomplete="off" disabled/>
+        <input id="input" autocomplete="off" disabled placeholder="Your message"/>
         <!-- <input type="file" onchange="upload(this.files)" 
          accept='.pdf'/> -->
-         <select class='select'>
+         <!-- <select class='select'>
            <option value='PDF' class='optionPdf'>PDF</option>
            <option value='TEXT' class='optionText' selected>TEXT</option>
-         </select>
-         <button>Send</button>
+         </select> -->
+         <button>Send message</button>
       </form>
     </div>
     <!-- <div id="myModal" class="modal">
@@ -258,9 +259,9 @@
     var inputForName = document.querySelector('#inputForName');
     var btnMore = document.querySelector('.moreBtn');
     var messageBlock = document.querySelector('.messageBlock');
-    var select = document.querySelector('.select');
-    var optionPdf = select.querySelector('.optionPdf');
-    var optionText = select.querySelector('.optionText');
+    // var select = document.querySelector('.select');
+    // var optionPdf = select.querySelector('.optionPdf');
+    // var optionText = select.querySelector('.optionText');
 
 
     socket.emit('check url', window.location.href);
@@ -328,11 +329,12 @@
       // console.log(indexOfStartId)
       currentUserId = window.location.href.slice(indexOfStartId+1)
       console.log(currentUserId);
-      let messageStatus = select.value;
+      // let messageStatus = select.value;
       if (input.value) {
-        await socket.emit('chat message', input.value , currentUserId, messageStatus);
+        // await socket.emit('chat message', input.value , currentUserId, messageStatus);
+        await socket.emit('chat message', input.value , currentUserId);
         input.value = '';
-        select.value = 'TEXT'
+        // select.value = 'TEXT'
       }
     });
 
@@ -368,7 +370,7 @@
       console.log(oldMessage)
       div.classList.add('message');
       // <span>${message.time}</span>
-      if(oldMessage.contentType === 'DOCUMENT'){
+      if(Boolean(oldMessage.text.includes('/dossier/guid'))){
           div.innerHTML = `
         <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
