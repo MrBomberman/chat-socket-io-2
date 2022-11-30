@@ -34,99 +34,117 @@ app.get('/startChat', (req, res) => {
 })
 
 app.post('/postMessage', async (req, res) => {
-  const users = getAllUsers();
-  console.log(req.body)
-  console.log('all users', users);
-  const body = req.body;
-  const numberFrom = body.from;
-  const userByPhone = getUserByPhone(numberFrom)[0];
-  res.send(userByPhone)
-  await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+  try {
+    const users = getAllUsers();
+    console.log(req.body)
+    console.log('all users', users);
+    const body = req.body;
+    const numberFrom = body.from;
+    const userByPhone = getUserByPhone(numberFrom)[0];
+    res.send(userByPhone)
+    await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+  } catch(e){
+    console.log((new Date()).toLocaleString('en-GB') , e)
+  }
 })
 
 app.post('/openChat', async (req, res) => {
-  console.log(req.body)
-  let countEmptyKey = 0;
-  for(let [key, value] of Object.entries(req.body)){
-    console.log(key, value)
-    if(value.length === 0){
-      countEmptyKey = countEmptyKey + 1;
+  try {
+    console.log(req.body)
+    let countEmptyKey = 0;
+    for(let [key, value] of Object.entries(req.body)){
+      console.log(key, value)
+      if(value.length === 0){
+        countEmptyKey = countEmptyKey + 1;
+      }
     }
-  }
-
-  if(countEmptyKey === 0){
-    const conversationInfo = await startConversation(req.body.clientPhone)
-    // await io.emit('open new chat', req.body)
-    console.log((new Date()).toLocaleString('en-GB'), 
-    `Conversation info : ${conversationInfo}`);
-    res.status(200).send(req.body)
-    await io.emit('open chat window', conversationInfo, req.body.clientPhone)
-  } else {
-    res.status(400).send(`Empty field in request !`)
+  
+    if(countEmptyKey === 0){
+      const conversationInfo = await startConversation(req.body.clientPhone)
+      // await io.emit('open new chat', req.body)
+      console.log((new Date()).toLocaleString('en-GB'), 
+      `Conversation info : ${conversationInfo}`);
+      res.status(200).send(req.body)
+      await io.emit('open chat window', conversationInfo, req.body.clientPhone)
+    } else {
+      res.status(400).send(`Empty field in request !`)
+    }
+  } catch(e){
+    console.log((new Date()).toLocaleString('en-GB'), e)
+    res.status(400).send(`Error! ${e}`)
   }
 })
 
 io.on('connection', (client) => {
   client.on('check url', async (url) => {
-    const indexOfStartId = url.indexOf('#');
-    const id = url.slice(indexOfStartId+1)
-    const currentUser = getCurrentUser(id)[0];
-    const users = getAllUsers();
-    // let messages = [];
-    // const messages = getMessages(currentUser.username);
-    // console.log(messages)
-    console.log((new Date()).toLocaleString('en-GB'),'all users after reload' , users)
-    // console.log(currentUser)
-    if(currentUser){
-      const response = await getMessages(currentUser.phone)
-      const messages = await response.json();
-      client.emit('show message', messages)
-      client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
-      client.emit('open input')
-      client.emit('user exist', currentUser.id)
-      client.join(currentUser.id)
-      client.broadcast
-        .to(currentUser.id)
-    } else if ((currentUser === undefined && users.length !== 0 &&
-      indexOfStartId !== -1) || (indexOfStartId !== -1 && users.length === 0)){
-      client.emit('navigate to home page')
-    }
-  })
 
-  client.on('upload', (file, callback) => {
-    console.log(file); // <Buffer 25 50 44 ...>
-
-    // save the content to the disk, for example
-    writeFile("/tmp/upload", file, (err) => {
-      callback({ message: err ? "failure" : "success" });
-    })
-  })
-
-  client.on('join room', async (phone) => {
-    const conversationInfo = await startConversation(phone);
-    console.log('Response', conversationInfo)
-    let currentUser;
-    const userExist = getUserByPhone(phone)[0];
-    if(Boolean(userExist)){
-      currentUser = userExist;
-    } else {
-      currentUser = userJoin(conversationInfo.uuid , phone)
-    }
-    console.log('join')
-    await client.emit('add hash', currentUser.id)
-    console.log((new Date()).toLocaleString('en-GB'), 
-    `Current user id : ${currentUser.id}`)
-    let response;
-    let messages;
     try {
-      response = await getMessages(phone)
-      messages = await response.json();
+      const indexOfStartId = url.indexOf('#');
+      const id = url.slice(indexOfStartId+1)
+      const currentUser = getCurrentUser(id)[0];
+      const users = getAllUsers();
+      // let messages = [];
+      // const messages = getMessages(currentUser.username);
+      // console.log(messages)
+      console.log((new Date()).toLocaleString('en-GB'),'all users after reload' , users)
+      // console.log(currentUser)
+      if(currentUser){
+        const response = await getMessages(currentUser.phone)
+        const messages = await response.json();
+        client.emit('show message', messages)
+        client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
+        client.emit('open input')
+        client.emit('user exist', currentUser.id)
+        client.join(currentUser.id)
+        client.broadcast
+          .to(currentUser.id)
+      } else if ((currentUser === undefined && users.length !== 0 &&
+        indexOfStartId !== -1) || (indexOfStartId !== -1 && users.length === 0)){
+        client.emit('navigate to home page')
+      }
     } catch(e){
       console.log((new Date()).toLocaleString('en-GB') ,e)
     }
-    await client.emit('show message', messages)
-    await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
-    client.emit('open input')
+  })
+
+  // client.on('upload', (file, callback) => {
+  //   console.log(file); // <Buffer 25 50 44 ...>
+
+  //   // save the content to the disk, for example
+  //   writeFile("/tmp/upload", file, (err) => {
+  //     callback({ message: err ? "failure" : "success" });
+  //   })
+  // })
+
+  client.on('join room', async (phone) => {
+    try {
+      const conversationInfo = await startConversation(phone);
+      console.log('Response', conversationInfo)
+      let currentUser;
+      const userExist = getUserByPhone(phone)[0];
+      if(Boolean(userExist)){
+        currentUser = userExist;
+      } else {
+        currentUser = userJoin(conversationInfo.uuid , phone)
+      }
+      console.log('join')
+      await client.emit('add hash', currentUser.id)
+      console.log((new Date()).toLocaleString('en-GB'), 
+      `Current user id : ${currentUser.id}`)
+      let response;
+      let messages;
+      try {
+        response = await getMessages(phone)
+        messages = await response.json();
+      } catch(e){
+        console.log((new Date()).toLocaleString('en-GB') ,e)
+      }
+      await client.emit('show message', messages)
+      await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
+      client.emit('open input')
+    } catch(e){
+      console.log((new Date()).toLocaleString('en-GB') ,e)
+    }
     
     // client.join(currentUser.id)
     // client.broadcast
@@ -135,11 +153,11 @@ io.on('connection', (client) => {
   
 
   client.on('chat message', async (msg, id, messageStatus) => {
-    const user = getCurrentUser(id)[0];
-    console.log((new Date()).toLocaleString('en-GB'), 
-    `message${msg}`, id);
-    await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat
     try {
+      const user = getCurrentUser(id)[0];
+      console.log((new Date()).toLocaleString('en-GB'), 
+      `message${msg}`, id);
+      await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat  
       await postMessage(msg, user.phone);
     } catch(e){
       console.log((new Date()).toLocaleString('en-GB') , e)
