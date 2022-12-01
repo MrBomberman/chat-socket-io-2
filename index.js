@@ -60,11 +60,15 @@ app.post('/openChat', async (req, res) => {
     }
   
     if(countEmptyKey === 0){
-      const conversationInfo = await startConversation(req.body.clientPhone)
+      // let conversationInfo;
+      let conversationInfo = await startConversation(req.body.clientPhone)
+        // .then(res => {
+        //   conversationInfo = res
+        // })
       // await io.emit('open new chat', req.body)
-      console.log((new Date()).toLocaleString('en-GB'), 
+      await console.log((new Date()).toLocaleString('en-GB'), 
       `Conversation info : ${conversationInfo}`);
-      res.status(200).send(req.body)
+      res.status(200).send(conversationInfo)
       await io.emit('open chat window', conversationInfo, req.body.clientPhone)
     } else {
       res.status(400).send(`Empty field in request !`)
@@ -92,7 +96,7 @@ io.on('connection', (client) => {
         const response = await getMessages(currentUser.phone)
         const messages = await response.json();
         client.emit('show message', messages)
-        client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
+        // client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
         client.emit('open input')
         client.emit('user exist', currentUser.id)
         client.join(currentUser.id)
@@ -118,7 +122,7 @@ io.on('connection', (client) => {
 
   client.on('join room', async (phone) => {
     try {
-      const conversationInfo = await startConversation(phone);
+      let conversationInfo = await startConversation(phone);
       console.log('Response', conversationInfo)
       let currentUser;
       const userExist = getUserByPhone(phone)[0];
@@ -140,7 +144,7 @@ io.on('connection', (client) => {
         console.log((new Date()).toLocaleString('en-GB') ,e)
       }
       await client.emit('show message', messages)
-      await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
+      // await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
       client.emit('open input')
     } catch(e){
       console.log((new Date()).toLocaleString('en-GB') ,e)
@@ -156,7 +160,7 @@ io.on('connection', (client) => {
     try {
       const user = getCurrentUser(id)[0];
       console.log((new Date()).toLocaleString('en-GB'), 
-      `message${msg}`, id);
+      `message ${msg}`, id);
       await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat  
       await postMessage(msg, user.phone);
     } catch(e){

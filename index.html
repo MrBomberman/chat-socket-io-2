@@ -16,7 +16,7 @@
     }
 
     .meta {
-      font-size: 15px;
+      font-size: 12px;
       font-weight: bold;
       color: var(--dark-color-b);
       opacity: 0.7;
@@ -35,7 +35,7 @@
     }
 
     .text {
-      font-size: 0.6em;
+      font-size: 14px;
       margin: 2px;
     } 
 
@@ -54,7 +54,7 @@
     #mainBlock {
       border: 0.5rem solid #D5D5D5;
       border-radius: 6px;
-      width: 550px;
+      width: 650px;
       font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
     }
 
@@ -210,7 +210,7 @@
   .myMessage {
     float: right;
     clear: both;
-    font-size: 14px;
+    font-size: 20px;
     line-height: 16px;
     color: #000;
     font-weight: 300;
@@ -220,14 +220,14 @@
     border-radius: 10px;
     min-width: 300px;
     background: #efe;
-    max-width: 650px;
+    max-width: 450px;
   }
 
   .fromMessage {
     float: left;
     min-width: 300px;
     clear: both;
-    font-size: 14px;
+    font-size: 20px;
     line-height: 16px;
     color: #000;
     font-weight: 300;
@@ -236,7 +236,7 @@
     border: 1px solid #ddd;
     border-radius: 10px;
     background: #def;
-    max-width: 650px;
+    max-width: 450px;
   }
   </style>
 </head>
@@ -303,9 +303,9 @@
     })
 
 
-    select.addEventListener('click', (e) => {
-      console.log(e.target.value)
-    })
+    // select.addEventListener('click', (e) => {
+    //   console.log(e.target.value)
+    // })
 
 
     socket.on('open input', () => {
@@ -315,7 +315,7 @@
 
     socket.on('show message', async (messages) => {
       console.log(messages)
-      messages.forEach(item => outputOldMessage(item));
+      await messages.forEach(item => outputOldMessage(item));
     })
 
     // startBtn.addEventListener('click', () => {
@@ -400,9 +400,14 @@
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');
       console.log(oldMessage)
-      div.classList.add('message');
+      if(oldMessage.from == '447860099299'){
+        div.classList.add('myMessage');
+      } else {
+        div.classList.add('fromMessage');
+      }
+      // div.classList.add('message');
       // <span>${message.time}</span>
-      if(Boolean(oldMessage.text.includes('/dossier/guid'))){
+      if(Boolean(oldMessage.content.url)){
           div.innerHTML = `
         <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
@@ -424,9 +429,14 @@
     }
 
     function outputMessage(message, id){
-      console.log(message)
+      console.log('Main message',message)
       const div = document.createElement('div');
-      div.classList.add('message');
+      if(message.username === 'You'){
+        div.classList.add('myMessage');
+      } else {
+        div.classList.add('fromMessage')
+      }
+      // div.classList.add('message');
       if(Boolean(message.text.includes('/dossier/guid'))){
           div.innerHTML = `
         <p class="meta">${message.username} 
