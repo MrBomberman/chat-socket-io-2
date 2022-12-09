@@ -42,7 +42,7 @@ app.post('/postMessage', async (req, res) => {
     const body = req.body;
     const numberFrom = body.from;
     const userByPhone = getUserByPhone(numberFrom)[0];
-    logger.info(`Message from user ${userByPhone}`);
+    logger.info(`Message from user ${body.content.text}`);
     res.send(userByPhone)
     await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
   } catch(e){
