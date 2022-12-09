@@ -54,8 +54,9 @@
     #mainBlock {
       border: 0.5rem solid #D5D5D5;
       border-radius: 6px;
-      width: 650px;
+      width: 600px;
       font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
+      height: 86vh;
     }
 
     #form {
@@ -121,7 +122,7 @@
       color: #fff;
     }
     .messageBlock {
-      height: 60vh;
+      height: 72vh;
       overflow-y: auto;
       background-color: #fff;
     }
@@ -376,7 +377,7 @@
             await socket.emit('join room', phone);
             // window.location.href = `http://${window.location.host}/#${info.uuid}`
             window.open(`http://${window.location.host}/#${info.uuid}`, 'Delta chat',
-             "height=800,width=600,top=300px", menubar = 'yes');
+             "height=700,width=600,top=300px", menubar = 'yes');
             // await socket.on('add hash', (hash) => {
             //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
             //  "height=800,width=600,top=300px", menubar = 'yes')
@@ -407,13 +408,15 @@
       }
       // div.classList.add('message');
       // <span>${message.time}</span>
-      if(Boolean(oldMessage.content.url)){
+      console.log(oldMessage)
+      if((Boolean(oldMessage.content.text) && Boolean(oldMessage.content.text.includes('/dossier/guid') ))
+      || Boolean(oldMessage.content.url)){
           div.innerHTML = `
         <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
           </p>
         <p class="text">
-            <a href='${oldMessage.content.url}'
+            <a href='${oldMessage.content.text || oldMessage.content.url}'
             target="_blank">Document</a>
         </p>`;
       } else {

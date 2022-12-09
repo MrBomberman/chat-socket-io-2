@@ -110,7 +110,7 @@
             await socket.emit('join room' , '79091533461')
             await socket.on('add hash', (hash) => {
                 window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
-             "height=800,width=600,top=300px", menubar = 'yes')
+             "height=700,width=600,top=300px", menubar = 'yes')
             })
         })
         startBtn.addEventListener('click', () => {

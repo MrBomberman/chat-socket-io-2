@@ -14,6 +14,7 @@ const cors = require("cors");
 const getMessages = require('./utils/getMessages');
 const startConversation = require('./utils/startConversation');
 const postDocumentPDF = require('./utils/postDocumentPDF');
+const logger = require('./utils/logger');
 const corsOptions ={
    origin:'*', 
    credentials:true,            //access-control-allow-credentials:true
@@ -36,15 +37,16 @@ app.get('/startChat', (req, res) => {
 app.post('/postMessage', async (req, res) => {
   try {
     const users = getAllUsers();
-    console.log(req.body)
-    console.log('all users', users);
+    // console.log(req.body)
+    // console.log('all users', users);
     const body = req.body;
     const numberFrom = body.from;
     const userByPhone = getUserByPhone(numberFrom)[0];
+    logger.info(`Message from user ${userByPhone}`);
     res.send(userByPhone)
     await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
   } catch(e){
-    console.log((new Date()).toLocaleString('en-GB') , e)
+    logger.error(`Error ${e}`)
   }
 })
 
@@ -66,15 +68,14 @@ app.post('/openChat', async (req, res) => {
         //   conversationInfo = res
         // })
       // await io.emit('open new chat', req.body)
-      await console.log((new Date()).toLocaleString('en-GB'), 
-      `Conversation info : ${conversationInfo}`);
+      logger.info(`Client phone : ${req.body.clientPhone}`)
       res.status(200).send(conversationInfo)
       await io.emit('open chat window', conversationInfo, req.body.clientPhone)
     } else {
       res.status(400).send(`Empty field in request !`)
     }
   } catch(e){
-    console.log((new Date()).toLocaleString('en-GB'), e)
+    logger.error(`Error ${e}`)
     res.status(400).send(`Error! ${e}`)
   }
 })
@@ -90,8 +91,10 @@ io.on('connection', (client) => {
       // let messages = [];
       // const messages = getMessages(currentUser.username);
       // console.log(messages)
-      console.log((new Date()).toLocaleString('en-GB'),'all users after reload' , users)
+
+      // logger.info(`All users after reload ${users}`);
       // console.log(currentUser)
+      logger.info(`Current user ${currentUser}`)
       if(currentUser){
         const response = await getMessages(currentUser.phone)
         const messages = await response.json();
@@ -107,23 +110,14 @@ io.on('connection', (client) => {
         client.emit('navigate to home page')
       }
     } catch(e){
-      console.log((new Date()).toLocaleString('en-GB') ,e)
+      logger.error(`Error ${e}`)
     }
   })
-
-  // client.on('upload', (file, callback) => {
-  //   console.log(file); // <Buffer 25 50 44 ...>
-
-  //   // save the content to the disk, for example
-  //   writeFile("/tmp/upload", file, (err) => {
-  //     callback({ message: err ? "failure" : "success" });
-  //   })
-  // })
 
   client.on('join room', async (phone) => {
     try {
       let conversationInfo = await startConversation(phone);
-      console.log('Response', conversationInfo)
+      logger.info(`Conversation uuid ${conversationInfo.uuid}`);
       let currentUser;
       const userExist = getUserByPhone(phone)[0];
       if(Boolean(userExist)){
@@ -131,23 +125,22 @@ io.on('connection', (client) => {
       } else {
         currentUser = userJoin(conversationInfo.uuid , phone)
       }
-      console.log('join')
+      // logger.info('join')
       await client.emit('add hash', currentUser.id)
-      console.log((new Date()).toLocaleString('en-GB'), 
-      `Current user id : ${currentUser.id}`)
+      logger.info(`Current user join with id : ${currentUser.id}`)
       let response;
       let messages;
       try {
         response = await getMessages(phone)
         messages = await response.json();
       } catch(e){
-        console.log((new Date()).toLocaleString('en-GB') ,e)
+        logger.error(`Error ${e}`)
       }
       await client.emit('show message', messages)
       // await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
       client.emit('open input')
     } catch(e){
-      console.log((new Date()).toLocaleString('en-GB') ,e)
+      logger.error(`Error ${e}`)
     }
     
     // client.join(currentUser.id)
@@ -159,12 +152,14 @@ io.on('connection', (client) => {
   client.on('chat message', async (msg, id, messageStatus) => {
     try {
       const user = getCurrentUser(id)[0];
-      console.log((new Date()).toLocaleString('en-GB'), 
-      `message ${msg}`, id);
+      logger.info(`message ${msg}`)
+      // console.log((new Date()).toLocaleString('en-GB'), 
+      // `message ${msg}`, id);
       await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat  
       await postMessage(msg, user.phone);
     } catch(e){
-      console.log((new Date()).toLocaleString('en-GB') , e)
+      logger.error(`Error ${e}`)
+      // console.log((new Date()).toLocaleString('en-GB') , e)
     }
     // if(Boolean(msg.includes('/dossier/guid')) && messageStatus === 'PDF'){
     //   await postDocumentPDF(msg, user.phone)
