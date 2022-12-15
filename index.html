@@ -372,12 +372,12 @@
     });
 
 
-    socket.on('open chat window', async (info, phone) => {
+    socket.on('open chat window', async (info, phone, region) => {
             console.log(info, phone)
-            await socket.emit('join room', phone);
+            await socket.emit('join room', phone, region);
             // window.location.href = `http://${window.location.host}/#${info.uuid}`
             window.open(`http://${window.location.host}/#${info.uuid}`, 'Delta chat',
-             "height=700,width=600,top=300px", menubar = 'yes');
+             "height=850,width=600,top=300px", menubar = 'yes');
             // await socket.on('add hash', (hash) => {
             //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
             //  "height=800,width=600,top=300px", menubar = 'yes')
@@ -400,19 +400,22 @@
 
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');
-      console.log(oldMessage)
-      if(oldMessage.from == '447860099299'){
+      console.log('Old message: ',oldMessage)
+      let nameOfSender = '';
+      if(oldMessage.from == '4915735983182' || oldMessage.from == '33755531150' ||
+      oldMessage.from == '43676800800737' || oldMessage.from == '41798071999' ) {
         div.classList.add('myMessage');
+        nameOfSender = 'You'
       } else {
         div.classList.add('fromMessage');
+        nameOfSender = oldMessage.from;
       }
-      // div.classList.add('message');
-      // <span>${message.time}</span>
+
       console.log(oldMessage)
       if((Boolean(oldMessage.content.text) && Boolean(oldMessage.content.text.includes('/dossier/guid') ))
       || Boolean(oldMessage.content.url)){
           div.innerHTML = `
-        <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
+        <p class="meta">${nameOfSender} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
           </p>
         <p class="text">
@@ -421,11 +424,11 @@
         </p>`;
       } else {
           div.innerHTML = `
-        <p class="meta">${oldMessage.from == 447860099299 ? 'You' : oldMessage.from} 
+        <p class="meta">${nameOfSender} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
           </p>
         <p class="text">
-            ${oldMessage.content.text}
+            ${oldMessage.content.text || oldMessage.content.templateName}
         </p>`;
       }
       messages.appendChild(div)

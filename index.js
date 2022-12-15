@@ -63,14 +63,14 @@ app.post('/openChat', async (req, res) => {
   
     if(countEmptyKey === 0){
       // let conversationInfo;
-      let conversationInfo = await startConversation(req.body.clientPhone)
+      let conversationInfo = await startConversation(req.body.clientPhone, req.body.region)
         // .then(res => {
         //   conversationInfo = res
         // })
       // await io.emit('open new chat', req.body)
       logger.info(`Client phone : ${req.body.clientPhone}`)
       res.status(200).send(conversationInfo)
-      await io.emit('open chat window', conversationInfo, req.body.clientPhone)
+      await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)
     } else {
       res.status(400).send(`Empty field in request !`)
     }
@@ -114,9 +114,9 @@ io.on('connection', (client) => {
     }
   })
 
-  client.on('join room', async (phone) => {
+  client.on('join room', async (phone,region) => {
     try {
-      let conversationInfo = await startConversation(phone);
+      let conversationInfo = await startConversation(phone, region);
       logger.info(`Conversation uuid ${conversationInfo.uuid}`);
       let currentUser;
       const userExist = getUserByPhone(phone)[0];

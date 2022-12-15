@@ -1,6 +1,6 @@
 const fetch =  require("node-fetch");
 
-async function startConversation(phone){
+async function startConversation(phone, region){
     
     const response = await fetch('http://46.138.245.127:7557/conversation', {
             method: 'POST',
@@ -10,11 +10,13 @@ async function startConversation(phone){
             },
             body: `{
                 "numberPhone": "${phone}",
-                "agentName": "Smith"
+                "agentName": "Michael",
+                "region": "${region}"
               }`
             });      
 
     const data = await response.json();
+    // console.log('Data!!!!',data)
     return data;
 }
 

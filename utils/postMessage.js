@@ -1,4 +1,5 @@
 const fetch =  require("node-fetch");
+const logger = require('./logger')
 
 async function postMessage(message, phone){
     
@@ -9,7 +10,7 @@ async function postMessage(message, phone){
                 'Accept': "*/*"
             },
             body: `{
-                "AgentName" : "Smith",
+                "AgentName" : "Michael",
                 "ClientNumber": "${phone}",
                 "Channel" : "WHATSAPP",
                 "ContentType" : "TEXT",
@@ -19,7 +20,7 @@ async function postMessage(message, phone){
                 }`
             });      
 
-    console.log(response.status)
+    logger.info(`Response status of post message: ${response.status}`)
 }
 
 module.exports = postMessage;
