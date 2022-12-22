@@ -5,6 +5,7 @@ const postMessage = require('./utils/postMessage');
 
 const express = require('express');
 const { writeFile } = require("fs");
+const puppeteer = require('puppeteer');
 const app = express();
 const router = express.Router();
 const http = require('http').Server(app);
@@ -27,6 +28,7 @@ const botName = 'Delta support'
 app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json())
 app.get('/', (req, res) => {
+  // console.log('RES', res)
   res.sendFile(__dirname + '/index.html');
 });
 
@@ -37,14 +39,24 @@ app.get('/startChat', (req, res) => {
 app.post('/postMessage', async (req, res) => {
   try {
     const users = getAllUsers();
+    // console.log('Request:',req.body)
     // console.log(req.body)
-    // console.log('all users', users);
+    console.log('all users', users);
+    console.log('Body: ', req.body);
+    console.log('Users from postmessage', users)
     const body = req.body;
     const numberFrom = body.from;
-    const userByPhone = getUserByPhone(numberFrom)[0];
-    logger.info(`Message from user ${body.content.text}`);
+    const numberTo = body.to;
+    const userByPhone = getUserByPhone(numberFrom)[0] || getUserByPhone(numberTo)[0];
+    if(body.content.templateName) {
+      logger.info(`Message from user ${body.content.templateName}`);
+      await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content.templateName), userByPhone.id);
+    } else {
+      logger.info(`Message from user ${body.content.text}`);
+      await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+    }
     res.send(userByPhone)
-    await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+    // await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
   } catch(e){
     logger.error(`Error ${e}`)
   }
@@ -63,19 +75,29 @@ app.post('/openChat', async (req, res) => {
   
     if(countEmptyKey === 0){
       // let conversationInfo;
-      let conversationInfo = await startConversation(req.body.clientPhone, req.body.region)
+      let conversationInfo = await startConversation(req.body.numberPhone, req.body.region)
         // .then(res => {
         //   conversationInfo = res
         // })
       // await io.emit('open new chat', req.body)
-      logger.info(`Client phone : ${req.body.clientPhone}`)
+      logger.info(`Client phone : ${req.body.numberPhone}`)
+      // const browser = await puppeteer.launch({headless: false});
+      // const page = await browser.newPage();
+      // await page.goto(`http://bs315.ns.delta:6002/#${conversationInfo.uuid}`);
+      let currentUser;
+      const userExist = getUserByPhone(req.body.numberPhone)[0];
+      if(Boolean(userExist)){
+        currentUser = userExist;
+      } else {
+        currentUser = userJoin(conversationInfo.uuid , req.body.numberPhone)
+      }
       res.status(200).send(conversationInfo)
-      await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)
+      // await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)
     } else {
       res.status(400).send(`Empty field in request !`)
     }
   } catch(e){
-    logger.error(`Error ${e}`)
+    logger.error(`Error in openchat ${e}`)
     res.status(400).send(`Error! ${e}`)
   }
 })
@@ -86,15 +108,16 @@ io.on('connection', (client) => {
     try {
       const indexOfStartId = url.indexOf('#');
       const id = url.slice(indexOfStartId+1)
-      const currentUser = getCurrentUser(id)[0];
+      const currentUser = await getCurrentUser(id)[0];
       const users = getAllUsers();
       // let messages = [];
       // const messages = getMessages(currentUser.username);
       // console.log(messages)
 
       // logger.info(`All users after reload ${users}`);
-      // console.log(currentUser)
-      logger.info(`Current user ${currentUser}`)
+      console.log('Current user',currentUser)
+      console.log('Users!', users)
+      // logger.info(`Users! ${[...users]}`)
       if(currentUser){
         const response = await getMessages(currentUser.phone)
         const messages = await response.json();

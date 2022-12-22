@@ -10,7 +10,6 @@ async function postMessage(message, phone){
                 'Accept': "*/*"
             },
             body: `{
-                "AgentName" : "Michael",
                 "ClientNumber": "${phone}",
                 "Channel" : "WHATSAPP",
                 "ContentType" : "TEXT",

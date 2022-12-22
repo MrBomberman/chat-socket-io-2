@@ -56,7 +56,7 @@
       border-radius: 6px;
       width: 600px;
       font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
-      height: 86vh;
+      /* height: 86vh; */
     }
 
     #form {
@@ -122,7 +122,7 @@
       color: #fff;
     }
     .messageBlock {
-      height: 72vh;
+      height: 74vh;
       overflow-y: auto;
       background-color: #fff;
     }
@@ -200,6 +200,19 @@
       font-size: 0.5em;
     }
   }
+
+  @media (max-height: 680px ) {
+    .messageBlock {
+      height: 66vh;
+    }
+  }
+
+  @media (max-height: 620px ) {
+    .messageBlock {
+      height: 64vh;
+    }
+  }
+
 
   .select {
     background-color: #333;
@@ -375,8 +388,11 @@
     socket.on('open chat window', async (info, phone, region) => {
             console.log(info, phone)
             await socket.emit('join room', phone, region);
+            const currentUrl = window.location.href;
+            console.log(info)
+            // if(info.uuid =)
             // window.location.href = `http://${window.location.host}/#${info.uuid}`
-            window.open(`http://${window.location.host}/#${info.uuid}`, 'Delta chat',
+            window.open(`http://${window.location.host}/#${info.uuid}`, target = '_blank', 'Delta chat',
              "height=850,width=600,top=300px", menubar = 'yes');
             // await socket.on('add hash', (hash) => {
             //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
@@ -418,7 +434,7 @@
         <p class="meta">${nameOfSender} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
           </p>
-        <p class="text">
+        <p class="text">a
             <a href='${oldMessage.content.text || oldMessage.content.url}'
             target="_blank">Document</a>
         </p>`;

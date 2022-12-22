@@ -107,11 +107,15 @@
 
         userInfo.addEventListener('click', async () => {
             // 77472888695
-            await socket.emit('join room' , '79091533461')
-            await socket.on('add hash', (hash) => {
-                window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
-             "height=700,width=600,top=300px", menubar = 'yes')
-            })
+            // await socket.emit('join room' , '79091533461')
+            // await socket.on('add hash', (hash) => {
+            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
+            //  "height=700,width=600,top=300px", menubar = 'yes')
+            // })
+            
+            window.open(`http://bs315.ns.delta:6002/`, 
+            'Delta chat',
+             "height=850,width=600,top=300px", menubar = 'yes')
         })
         startBtn.addEventListener('click', () => {
             modal.style.display = 'block';
