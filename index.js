@@ -25,11 +25,20 @@ const corsOptions ={
 const botName = 'Delta support'
 
 // app.static(__dirname);
+// app.use(express.static(__dirname))
 app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json())
 app.get('/', (req, res) => {
   // console.log('RES', res)
   res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/chat', (req, res) => {
+  // console.log('RES', res)
+  console.log(__dirname)
+  // res.sendFile(__dirname + '/index.js')
+  res.sendFile(__dirname + '/index.html');
+  // res.sendFile('/index.js')
 });
 
 app.get('/startChat', (req, res) => {
@@ -75,21 +84,21 @@ app.post('/openChat', async (req, res) => {
   
     if(countEmptyKey === 0){
       // let conversationInfo;
-      let conversationInfo = await startConversation(req.body.numberPhone, req.body.region)
+      let conversationInfo = await startConversation(req.body.clientPhone, req.body.region)
         // .then(res => {
         //   conversationInfo = res
         // })
       // await io.emit('open new chat', req.body)
-      logger.info(`Client phone : ${req.body.numberPhone}`)
+      logger.info(`Client phone : ${req.body.clientPhone}`)
       // const browser = await puppeteer.launch({headless: false});
       // const page = await browser.newPage();
       // await page.goto(`http://bs315.ns.delta:6002/#${conversationInfo.uuid}`);
       let currentUser;
-      const userExist = getUserByPhone(req.body.numberPhone)[0];
+      const userExist = getUserByPhone(req.body.clientPhone)[0];
       if(Boolean(userExist)){
         currentUser = userExist;
       } else {
-        currentUser = userJoin(conversationInfo.uuid , req.body.numberPhone)
+        currentUser = userJoin(conversationInfo.uuid , req.body.clientPhone)
       }
       res.status(200).send(conversationInfo)
       // await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)

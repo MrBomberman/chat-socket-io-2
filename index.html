@@ -4,6 +4,7 @@
 <head> 
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Delta chat</title>
   <style>
@@ -288,11 +289,12 @@
         </div>
       </div>
   </div> -->
+  <!-- <script src="/socket.io/socket.io.js" async></script> -->
   <script src="/socket.io/socket.io.js"></script>
-  <script type="commonjs" src="./utils/users.js"></script>
   <script type="module" src="index.js"></script>
   <script>
     var socket = io();
+    // var socket = io.connect('/');
     let startChat = false;
     let currentUser = '';
     var messages = document.getElementById('messages');
@@ -434,7 +436,7 @@
         <p class="meta">${nameOfSender} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
           </p>
-        <p class="text">a
+        <p class="text">
             <a href='${oldMessage.content.text || oldMessage.content.url}'
             target="_blank">Document</a>
         </p>`;
