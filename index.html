@@ -6,6 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://d1ber40ngqe0oz.cloudfront.net/fonts/roboto.css" rel="stylesheet" type="text/css" />
   <title>Delta chat</title>
   <style>
       :root {
@@ -53,9 +54,9 @@
     }
 
     #mainBlock {
-      border: 0.5rem solid #D5D5D5;
+      border: 1px solid #D5D5D5;
       border-radius: 6px;
-      width: 600px;
+      width: 750px;
       font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
       /* height: 86vh; */
     }
@@ -264,7 +265,7 @@
     </div>
     <div class="messageBlock">
       <!-- <div class='moreBtn'>More</div> -->
-      <ul id="messages"></ul>
+      <div id="messages"></div>
     </div>
     <div>
       <form id="form" action="">
@@ -325,7 +326,10 @@
 
 
     socket.on('open input', () => {
-      input.disabled = false
+      input.disabled = false;
+      console.log(messages.scrollHeight)
+      messageBlock.scrollTo(0, messages.scrollHeight)
+      // window.scrollTo(0, messageBlock.innerHeight);
       // startBtn.disabled = true;
     })
 
