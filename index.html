@@ -484,8 +484,8 @@
       // div.classList.add('message');
       if(typeof message.text === 'object'){
         console.log('It is main trans offer')
-      }
-      if(Boolean(message.text.includes('/dossier/guid'))){
+      } else {
+        if(Boolean(message.text.includes('/dossier/guid'))){
           div.innerHTML = `
         <p class="meta">${message.username} 
           <span>${message.time}</span>
@@ -502,6 +502,7 @@
         <p class="text">
             ${message.text}
         </p>`;
+      }
       }
       messages.appendChild(div)
     }
