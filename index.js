@@ -5,7 +5,6 @@ const postMessage = require('./utils/postMessage');
 
 const express = require('express');
 const { writeFile } = require("fs");
-const puppeteer = require('puppeteer');
 const app = express();
 const router = express.Router();
 const http = require('http').Server(app);
@@ -58,8 +57,13 @@ app.post('/postMessage', async (req, res) => {
     const numberTo = body.to;
     const userByPhone = getUserByPhone(numberFrom)[0] || getUserByPhone(numberTo)[0];
     if(body.content.templateName) {
-      logger.info(`Message from user ${body.content.templateName}`);
-      await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content.templateName), userByPhone.id);
+      if(body.content.header == null){
+        logger.info(`Message from user ${body.content.templateName}`);
+        await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content.templateName), userByPhone.id);
+      } else {
+        logger.info(`Message from user ${body.content.templateName}`);
+        await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content), userByPhone.id);
+      }
     } else {
       logger.info(`Message from user ${body.content.text}`);
       await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
@@ -81,7 +85,7 @@ app.post('/openChat', async (req, res) => {
         countEmptyKey = countEmptyKey + 1;
       }
     }
-  
+    // await io.to('894cd56d-846d-4b8c-925b-1c47d26d60d0').emit('Add garage name', req.body.garageName);
     if(countEmptyKey === 0){
       // let conversationInfo;
       let conversationInfo = await startConversation(req.body.clientPhone, req.body.region)
@@ -90,11 +94,13 @@ app.post('/openChat', async (req, res) => {
         // })
       // await io.emit('open new chat', req.body)
       logger.info(`Client phone : ${req.body.clientPhone}`)
+      // logger.info(`Garage name : ${req.body.garageName}`)
       // const browser = await puppeteer.launch({headless: false});
       // const page = await browser.newPage();
       // await page.goto(`http://bs315.ns.delta:6002/#${conversationInfo.uuid}`);
       let currentUser;
       const userExist = getUserByPhone(req.body.clientPhone)[0];
+    //   console.log(userExist)
       if(Boolean(userExist)){
         currentUser = userExist;
       } else {
@@ -146,39 +152,39 @@ io.on('connection', (client) => {
     }
   })
 
-  client.on('join room', async (phone,region) => {
-    try {
-      let conversationInfo = await startConversation(phone, region);
-      logger.info(`Conversation uuid ${conversationInfo.uuid}`);
-      let currentUser;
-      const userExist = getUserByPhone(phone)[0];
-      if(Boolean(userExist)){
-        currentUser = userExist;
-      } else {
-        currentUser = userJoin(conversationInfo.uuid , phone)
-      }
-      // logger.info('join')
-      await client.emit('add hash', currentUser.id)
-      logger.info(`Current user join with id : ${currentUser.id}`)
-      let response;
-      let messages;
-      try {
-        response = await getMessages(phone)
-        messages = await response.json();
-      } catch(e){
-        logger.error(`Error ${e}`)
-      }
-      await client.emit('show message', messages)
-      // await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
-      client.emit('open input')
-    } catch(e){
-      logger.error(`Error ${e}`)
-    }
+  // client.on('join room', async (phone,region) => {
+  //   try {
+  //     let conversationInfo = await startConversation(phone, region);
+  //     logger.info(`Conversation uuid ${conversationInfo.uuid}`);
+  //     let currentUser;
+  //     const userExist = getUserByPhone(phone)[0];
+  //     if(Boolean(userExist)){
+  //       currentUser = userExist;
+  //     } else {
+  //       currentUser = userJoin(conversationInfo.uuid , phone)
+  //     }
+  //     // logger.info('join')
+  //     await client.emit('add hash', currentUser.id)
+  //     logger.info(`Current user join with id : ${currentUser.id}`)
+  //     let response;
+  //     let messages;
+  //     try {
+  //       response = await getMessages(phone)
+  //       messages = await response.json();
+  //     } catch(e){
+  //       logger.error(`Error ${e}`)
+  //     }
+  //     await client.emit('show message', messages)
+  //     // await client.emit('chat message', formatMessage(botName, 'Welcome to chat!'),  currentUser.id )
+  //     client.emit('open input')
+  //   } catch(e){
+  //     logger.error(`Error ${e}`)
+  //   }
     
-    // client.join(currentUser.id)
-    // client.broadcast
-    //   .to(currentUser.id)
-  });
+  //   // client.join(currentUser.id)
+  //   // client.broadcast
+  //   //   .to(currentUser.id)
+  // });
   
 
   client.on('chat message', async (msg, id, messageStatus) => {

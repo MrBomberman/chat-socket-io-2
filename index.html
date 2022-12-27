@@ -23,6 +23,7 @@
       color: var(--dark-color-b);
       opacity: 0.7;
       margin-bottom: 7px;
+      margin-top: 5px;
     }
 
     .meta span {
@@ -44,7 +45,10 @@
     body {
       margin: 0;
       padding-bottom: 3rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Roboto Condensed';
+      font-style: normal;
+      font-weight: 400;
+      /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -57,13 +61,13 @@
       border: 1px solid #D5D5D5;
       border-radius: 6px;
       width: 750px;
-      font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif;
+      /* font-family: 'Roboto Condensed', Arial, Helvetica, Tahoma, sans-serif; */
       /* height: 86vh; */
     }
 
     #form {
       position: relative;
-      background: rgba(0, 0, 0, 0.15);
+      /* background: rgba(0, 0, 0, 0.15); */
       padding: 0.25rem;
       bottom: 0;
       left: 0;
@@ -82,6 +86,9 @@
       margin: 0.25rem;
       font-size: 16px;
       height: 40px;
+      font-family: 'Roboto Condensed';
+      font-style: normal;
+      font-weight: 400;
     }
 
     #input:focus {
@@ -99,6 +106,9 @@
       font-size: 0.75em;
       height: 40px;
       font-size: 16px;
+      font-family: 'Roboto Condensed';
+      font-style: normal;
+      font-weight: 400;
     }
 
     #messages {
@@ -230,7 +240,7 @@
     line-height: 16px;
     color: #000;
     font-weight: 300;
-    padding: 10px 10px 5px 10px;
+    padding: 5px 10px 5px 10px;
     margin: 10px 10px 10px 10px;
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -311,6 +321,7 @@
     // var select = document.querySelector('.select');
     // var optionPdf = select.querySelector('.optionPdf');
     // var optionText = select.querySelector('.optionText');
+    let garageName = '';
 
 
     socket.emit('check url', window.location.href);
@@ -322,6 +333,11 @@
 
     // select.addEventListener('click', (e) => {
     //   console.log(e.target.value)
+      // })
+
+    // socket.on('Add garage name', async (name) => {
+    //   await console.log(name)
+    //   // garageName = name;
     // })
 
 
@@ -422,7 +438,7 @@
 
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');
-      console.log('Old message: ',oldMessage)
+      // console.log('Old message: ',oldMessage)
       let nameOfSender = '';
       if(oldMessage.from == '4915735983182' || oldMessage.from == '33755531150' ||
       oldMessage.from == '43676800800737' || oldMessage.from == '41798071999' ) {
@@ -431,9 +447,10 @@
       } else {
         div.classList.add('fromMessage');
         nameOfSender = oldMessage.from;
+        // nameOfSender = garageName;
       }
 
-      console.log(oldMessage)
+      // console.log(oldMessage)
       if((Boolean(oldMessage.content.text) && Boolean(oldMessage.content.text.includes('/dossier/guid') ))
       || Boolean(oldMessage.content.url)){
           div.innerHTML = `
@@ -465,6 +482,9 @@
         div.classList.add('fromMessage')
       }
       // div.classList.add('message');
+      if(typeof message.text === 'object'){
+        console.log('It is main trans offer')
+      }
       if(Boolean(message.text.includes('/dossier/guid'))){
           div.innerHTML = `
         <p class="meta">${message.username} 
