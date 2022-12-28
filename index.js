@@ -23,6 +23,7 @@ const corsOptions ={
 
 const botName = 'Delta support'
 
+
 app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -31,7 +32,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/chat', (req, res) => {
-  // console.log(__dirname)
   res.sendFile(__dirname + '/index.html');
 });
 
