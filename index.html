@@ -270,7 +270,9 @@
 <body>
   <div id="mainBlock">
     <div class="header">
-      <h3 style="margin: 10px; color: black; font-size: 20px">Delta WhatsApp Business Chat</h3>
+      <h3 style="margin: 10px; color: black; font-size: 20px" 
+      class="mainHeader">
+        Delta WhatsApp Business Chat</h3>
       <!-- <button id="btnToStart" class="startBtn">START CHAT</button> -->
     </div>
     <div class="messageBlock">
@@ -302,10 +304,9 @@
   </div> -->
   <!-- <script src="/socket.io/socket.io.js" async></script> -->
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="index.js"></script>
+  <script type="module" src="/index.js"></script>
   <script>
     var socket = io();
-    // var socket = io.connect('/');
     let startChat = false;
     let currentUser = '';
     var messages = document.getElementById('messages');
@@ -318,18 +319,18 @@
     var inputForName = document.querySelector('#inputForName');
     var btnMore = document.querySelector('.moreBtn');
     var messageBlock = document.querySelector('.messageBlock');
+    var mainHeader = document.querySelector('.mainHeader');
     // var select = document.querySelector('.select');
     // var optionPdf = select.querySelector('.optionPdf');
     // var optionText = select.querySelector('.optionText');
-    let garageName = '';
-
+    var clientName;
+    var agentName;
 
     socket.emit('check url', window.location.href);
 
     socket.on('navigate to home page', () => {
       window.location.href = `http://${window.location.host}`;
     })
-
 
     // select.addEventListener('click', (e) => {
     //   console.log(e.target.value)
@@ -340,6 +341,32 @@
     //   // garageName = name;
     // })
 
+    socket.on('show garage name', (name) => {
+      document.title = `Chat ${name}`
+      mainHeader.innerHTML = `
+        Chat with ${name}
+      `
+    })
+
+    socket.on('show client name', (name) => {
+      clientName = name;
+    })
+
+    socket.on('show agent name', (name) => {
+      agentName = name;
+    })
+
+    socket.on('show message', async (messages) => {
+      console.log(messages)
+      await messages.forEach(item => outputOldMessage(item));
+    })
+
+
+    socket.on('chat message',async function (msg) {
+      await outputMessage(msg)
+      messageBlock.scrollTo(0, messageBlock.scrollHeight);
+    });
+
 
     socket.on('open input', () => {
       input.disabled = false;
@@ -348,42 +375,6 @@
       // window.scrollTo(0, messageBlock.innerHeight);
       // startBtn.disabled = true;
     })
-
-    socket.on('show message', async (messages) => {
-      console.log(messages)
-      await messages.forEach(item => outputOldMessage(item));
-    })
-
-    // startBtn.addEventListener('click', () => {
-    //   modal.style.display = "block";
-    // })
-
-    // btnToCloseModal.addEventListener('click', () => {
-    //   modal.style.display = "none";
-    // })
-
-    // btnMore.addEventListener('click', () => {
-    //   ['1', '2', '3'].forEach(item => outputMessage({id: 'Kirill', message: 'Hey'}));
-    // })
-
-    // btnToSendName.addEventListener('click', (e) => {
-    //   e.preventDefault();
-    //   startChat = true;
-    //   if(startChat){
-    //     // socket.emit('join room' , inputForName.value)
-    //     // socket.on('add hash', (hash) => {
-    //     //   window.location.hash = hash;
-    //     // })
-    //     // inputForName.value = '';
-    //     // modal.style.display = "none";
-    //     // input.disabled = false;
-    //   }
-    // })
-
-    socket.on('chat message',async function (msg) {
-      await outputMessage(msg)
-      messageBlock.scrollTo(0, messageBlock.scrollHeight);
-    });
 
 
     form.addEventListener('submit', async function (e) {
@@ -402,29 +393,9 @@
         // await socket.emit('chat message', input.value , currentUserId, messageStatus);
         await socket.emit('chat message', input.value , currentUserId);
         input.value = '';
-        // select.value = 'TEXT'
       }
     });
 
-
-    socket.on('open chat window', async (info, phone, region) => {
-            console.log(info, phone)
-            await socket.emit('join room', phone, region);
-            const currentUrl = window.location.href;
-            console.log(info)
-            // if(info.uuid =)
-            // window.location.href = `http://${window.location.host}/#${info.uuid}`
-            window.open(`http://${window.location.host}/#${info.uuid}`, target = '_blank', 'Delta chat',
-             "height=850,width=600,top=300px", menubar = 'yes');
-            // await socket.on('add hash', (hash) => {
-            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
-            //  "height=800,width=600,top=300px", menubar = 'yes')
-            // })
-            // await socket.on('add hash', (hash) => {
-            //     window.open(`http://${window.location.host}/#${hash}` , 'Delta chat',
-            //  "height=800,width=600,top=300px", menubar = 'yes')
-            // })
-        })
 
     window.onclick = function(event) {
       if (event.target == modal) {
@@ -436,6 +407,7 @@
             console.log(info)
         })
 
+
     function outputOldMessage(oldMessage){
       const div = document.createElement('div');
       // console.log('Old message: ',oldMessage)
@@ -443,14 +415,13 @@
       if(oldMessage.from == '4915735983182' || oldMessage.from == '33755531150' ||
       oldMessage.from == '43676800800737' || oldMessage.from == '41798071999' ) {
         div.classList.add('myMessage');
-        nameOfSender = 'You'
+        nameOfSender = agentName;
       } else {
         div.classList.add('fromMessage');
-        nameOfSender = oldMessage.from;
-        // nameOfSender = garageName;
+        // nameOfSender = oldMessage.from;
+        nameOfSender = `Client ${clientName}`;
       }
 
-      // console.log(oldMessage)
       if((Boolean(oldMessage.content.text) && Boolean(oldMessage.content.text.includes('/dossier/guid') ))
       || Boolean(oldMessage.content.url)){
           div.innerHTML = `
@@ -462,6 +433,19 @@
             target="_blank">Document</a>
         </p>`;
       } else {
+        if(Boolean(oldMessage.content.header)) {
+          div.innerHTML = `
+            <p class="meta">${nameOfSender} 
+              <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
+              </p>
+              <p class="text">
+                <a href='${oldMessage.content.header.url}' target="_blank">Document</a>
+                </p>
+            <p class="text">
+                ${oldMessage.content.templateName}
+            </p>
+            `;
+        } else {
           div.innerHTML = `
         <p class="meta">${nameOfSender} 
           <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
@@ -469,6 +453,7 @@
         <p class="text">
             ${oldMessage.content.text || oldMessage.content.templateName}
         </p>`;
+        }
       }
       messages.appendChild(div)
     }
@@ -476,14 +461,25 @@
     function outputMessage(message, id){
       console.log('Main message',message)
       const div = document.createElement('div');
-      if(message.username === 'You'){
+      
+      if(message.username == agentName){
         div.classList.add('myMessage');
       } else {
         div.classList.add('fromMessage')
       }
       // div.classList.add('message');
       if(typeof message.text === 'object'){
-        console.log('It is main trans offer')
+        div.innerHTML = `
+        <p class="meta">${message.username} 
+          <span>${message.time}</span>
+          </p>
+          <p class="text">
+          <a href='${message.text.header.url}'
+              target="_blank">Document</a>
+        </p>
+          <p class="text">
+            ${message.text.templateName}
+            </p>`;
       } else {
         if(Boolean(message.text.includes('/dossier/guid'))){
           div.innerHTML = `
@@ -506,6 +502,7 @@
       }
       messages.appendChild(div)
     }
+
 
     function upload(files) {
         socket.emit("upload", files[0], (status) => {

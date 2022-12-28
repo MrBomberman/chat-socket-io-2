@@ -23,8 +23,6 @@ const corsOptions ={
 
 const botName = 'Delta support'
 
-// app.static(__dirname);
-// app.use(express.static(__dirname))
 app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -33,11 +31,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/chat', (req, res) => {
-  // console.log('RES', res)
-  console.log(__dirname)
-  // res.sendFile(__dirname + '/index.js')
+  // console.log(__dirname)
   res.sendFile(__dirname + '/index.html');
-  // res.sendFile('/index.js')
 });
 
 app.get('/startChat', (req, res) => {
@@ -50,7 +45,7 @@ app.post('/postMessage', async (req, res) => {
     // console.log('Request:',req.body)
     // console.log(req.body)
     console.log('all users', users);
-    console.log('Body: ', req.body);
+    // console.log('Body: ', req.body);
     console.log('Users from postmessage', users)
     const body = req.body;
     const numberFrom = body.from;
@@ -59,14 +54,14 @@ app.post('/postMessage', async (req, res) => {
     if(body.content.templateName) {
       if(body.content.header == null){
         logger.info(`Message from user ${body.content.templateName}`);
-        await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content.templateName), userByPhone.id);
+        await io.to(userByPhone.id).emit('chat message', formatMessage(`${userByPhone.agentName}`, body.content.templateName), userByPhone.id);
       } else {
         logger.info(`Message from user ${body.content.templateName}`);
-        await io.to(userByPhone.id).emit('chat message', formatMessage(`You`, body.content), userByPhone.id);
+        await io.to(userByPhone.id).emit('chat message', formatMessage(`${userByPhone.agentName}`, body.content), userByPhone.id);
       }
     } else {
       logger.info(`Message from user ${body.content.text}`);
-      await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
+      await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${userByPhone.clientName}`, body.content.text), userByPhone.id);
     }
     res.send(userByPhone)
     // await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
@@ -89,23 +84,18 @@ app.post('/openChat', async (req, res) => {
     if(countEmptyKey === 0){
       // let conversationInfo;
       let conversationInfo = await startConversation(req.body.clientPhone, req.body.region)
-        // .then(res => {
-        //   conversationInfo = res
-        // })
-      // await io.emit('open new chat', req.body)
+
       logger.info(`Client phone : ${req.body.clientPhone}`)
-      // logger.info(`Garage name : ${req.body.garageName}`)
-      // const browser = await puppeteer.launch({headless: false});
-      // const page = await browser.newPage();
-      // await page.goto(`http://bs315.ns.delta:6002/#${conversationInfo.uuid}`);
+
       let currentUser;
       const userExist = getUserByPhone(req.body.clientPhone)[0];
-    //   console.log(userExist)
+      console.log(userExist)
       if(Boolean(userExist)){
         currentUser = userExist;
       } else {
-        currentUser = userJoin(conversationInfo.uuid , req.body.clientPhone)
+        currentUser = userJoin(conversationInfo.uuid , req.body.clientPhone, req.body.garageName, req.body.clientName, req.body.agentName)
       }
+      // await io.to(currentUser.id).emit('show garage name', 'lol');
       res.status(200).send(conversationInfo)
       // await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)
     } else {
@@ -136,6 +126,9 @@ io.on('connection', (client) => {
       if(currentUser){
         const response = await getMessages(currentUser.phone)
         const messages = await response.json();
+        client.emit('show garage name', currentUser.garageName)
+        client.emit('show client name', currentUser.clientName)
+        client.emit('show agent name', currentUser.agentName)
         client.emit('show message', messages)
         // client.emit('chat message', formatMessage(botName, 'Welcome to chat!'), currentUser.id )
         client.emit('open input')
@@ -193,7 +186,7 @@ io.on('connection', (client) => {
       logger.info(`message ${msg}`)
       // console.log((new Date()).toLocaleString('en-GB'), 
       // `message ${msg}`, id);
-      await io.to(id).emit('chat message', formatMessage('You', msg), id); // to send message everyone in the chat  
+      await io.to(id).emit('chat message', formatMessage(`${user.agentName}`, msg), id); // to send message everyone in the chat  
       await postMessage(msg, user.phone);
     } catch(e){
       logger.error(`Error ${e}`)
