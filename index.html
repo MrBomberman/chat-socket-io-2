@@ -7,6 +7,7 @@
   <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://d1ber40ngqe0oz.cloudfront.net/fonts/roboto.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <title>Delta chat</title>
   <style>
       :root {
@@ -272,7 +273,7 @@
     <div class="header">
       <h3 style="margin: 10px; color: black; font-size: 20px" 
       class="mainHeader">
-        Delta WhatsApp Business Chat</h3>
+        </h3>
       <!-- <button id="btnToStart" class="startBtn">START CHAT</button> -->
     </div>
     <div class="messageBlock">
@@ -281,14 +282,14 @@
     </div>
     <div>
       <form id="form" action="">
-        <input id="input" autocomplete="off" disabled placeholder="Your message"/>
+        <input id="input" autocomplete="off" disabled placeholder="..."/>
         <!-- <input type="file" onchange="upload(this.files)" 
          accept='.pdf'/> -->
          <!-- <select class='select'>
            <option value='PDF' class='optionPdf'>PDF</option>
            <option value='TEXT' class='optionText' selected>TEXT</option>
          </select> -->
-         <button>Send message</button>
+         <button><i class="material-icons">send</i></button>
       </form>
     </div>
     <!-- <div id="myModal" class="modal">
@@ -344,7 +345,7 @@
     socket.on('show garage name', (name) => {
       document.title = `Chat ${name}`
       mainHeader.innerHTML = `
-        Chat with ${name}
+        ${name}
       `
     })
 
@@ -419,7 +420,7 @@
       } else {
         div.classList.add('fromMessage');
         // nameOfSender = oldMessage.from;
-        nameOfSender = `Client ${clientName}`;
+        nameOfSender = `${clientName}`;
       }
 
       if((Boolean(oldMessage.content.text) && Boolean(oldMessage.content.text.includes('/dossier/guid') ))
@@ -439,10 +440,10 @@
               <span>${(new Date(oldMessage.createdAt)).toLocaleString('en-GB')}</span>
               </p>
             <p class="text">
-                <span style="text-decoration: underline">Brand</span> : ${oldMessage.content.body.placeholders[0]}
+                ${oldMessage.content.body.placeholders[0]}
             </p>
             <p class="text">
-              <span style="text-decoration: underline">Model</span> : ${oldMessage.content.body.placeholders[1]}
+              ${oldMessage.content.body.placeholders[1]}
             </p>
             <p class="text">
                 <a href='${oldMessage.content.header.url}' target="_blank">${oldMessage.content.header.filename}</a>
@@ -477,10 +478,10 @@
           <span>${message.time}</span>
           </p>
           <p class="text">
-                <span style="text-decoration: underline">Brand</span> : ${message.text.body.placeholders[0]}
+                ${message.text.body.placeholders[0]}
             </p>
             <p class="text">
-              <span style="text-decoration: underline">Model</span> : ${message.text.body.placeholders[1]}
+              ${message.text.body.placeholders[1]}
             </p>
           <p class="text">
           <a href='${message.text.header.url}'

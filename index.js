@@ -23,7 +23,8 @@ const corsOptions ={
 
 const botName = 'Delta support'
 
-
+// app.static(__dirname);
+// app.use(express.static(__dirname))
 app.use(cors(corsOptions)) // Use this after the variable declaration
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -32,7 +33,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/chat', (req, res) => {
+  // console.log('RES', res)
+  console.log(__dirname)
+  // res.sendFile(__dirname + '/index.js')
   res.sendFile(__dirname + '/index.html');
+  // res.sendFile('/index.js')
 });
 
 app.get('/startChat', (req, res) => {
@@ -61,7 +66,7 @@ app.post('/postMessage', async (req, res) => {
       }
     } else {
       logger.info(`Message from user ${body.content.text}`);
-      await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${userByPhone.clientName}`, body.content.text), userByPhone.id);
+      await io.to(userByPhone.id).emit('chat message', formatMessage(`${userByPhone.clientName}`, body.content.text), userByPhone.id);
     }
     res.send(userByPhone)
     // await io.to(userByPhone.id).emit('chat message', formatMessage(`Client ${body.singleSendMessage.contact.name}`, body.content.text), userByPhone.id);
