@@ -1,5 +1,5 @@
 const formatMessage = require('./utils/messages');
-const { userJoin, getCurrentUser, getAllUsers, getUserByPhone } = require('./utils/users');
+const { userJoin, getCurrentUser, getAllUsers, getUserByPhone, deleteUser } = require('./utils/users');
 const postMessage = require('./utils/postMessage');
 
 
@@ -33,9 +33,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/chat', (req, res) => {
-  // console.log('RES', res)
-  console.log(__dirname)
-  // res.sendFile(__dirname + '/index.js')
   res.sendFile(__dirname + '/index.html');
   // res.sendFile('/index.js')
 });
@@ -44,6 +41,11 @@ app.get('/startChat', (req, res) => {
   res.sendFile(__dirname + '/startChat.html')
 })
 
+
+app.get('/whatsapp', (req, res) => {
+  // console.log('RES', res)
+  res.sendFile(__dirname + '/images/whatsapp.png');
+});
 app.post('/postMessage', async (req, res) => {
   try {
     const users = getAllUsers();
@@ -96,10 +98,18 @@ app.post('/openChat', async (req, res) => {
       const userExist = getUserByPhone(req.body.clientPhone)[0];
       console.log(userExist)
       if(Boolean(userExist)){
-        currentUser = userExist;
+        if(userExist.garageName != req.body.garageName ||
+          userExist.clientName != req.body.clientName) {
+            deleteUser(req.body.clientPhone)
+            currentUser = userJoin(conversationInfo.uuid , req.body.clientPhone, req.body.garageName, req.body.clientName, req.body.agentName)
+          } else {
+            currentUser = userExist;
+          }
       } else {
         currentUser = userJoin(conversationInfo.uuid , req.body.clientPhone, req.body.garageName, req.body.clientName, req.body.agentName)
       }
+      const users = getAllUsers();
+      console.log('All users', users);
       // await io.to(currentUser.id).emit('show garage name', 'lol');
       res.status(200).send(conversationInfo)
       // await io.emit('open chat window', conversationInfo, req.body.clientPhone, req.body.region)
