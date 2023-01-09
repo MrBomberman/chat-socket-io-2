@@ -80,6 +80,7 @@
       align-items: center;
       backdrop-filter: blur(10px);
       background-color: #fff;
+      justify-content: space-between;
     }
 
     #input {
@@ -91,6 +92,7 @@
       font-family: 'Roboto Condensed';
       font-style: normal;
       font-weight: 400;
+      width: 100%;
     }
 
     #input:focus {
@@ -111,6 +113,7 @@
       font-family: 'Roboto Condensed';
       font-style: normal;
       font-weight: 400;
+      width: 17.5%;
     }
 
     #messages {
@@ -266,6 +269,34 @@
     background: #def;
     max-width: 450px;
   }
+
+  .fullInput {
+    width: 75%;
+    position: relative;
+  }
+
+  .sendFile {
+    position: absolute;
+    top: 9px;
+    right: -35px;
+    height: 32px;
+    width: 32px;
+    background-image: url('https://secure.delta-car.ch/img/websites/int/pictos/do/document_image_add-32.png');
+  }
+
+  .sendMainFile > [type=file] {
+    opacity: 0;
+    position: absolute;
+    top: 9px;
+    right: -35px;
+    height: 32px;
+    width: 32px;
+  }
+
+  
+  /* .btn {
+    width: 25%;
+  } */
   </style>
 </head>
 
@@ -283,15 +314,22 @@
     </div>
     <div>
       <form id="form" action="">
-        <input id="input" autocomplete="off" disabled placeholder="..."/>
+        <div class='fullInput'>
+          <input class='textInput' id="input" autocomplete="off" disabled placeholder="..."/>        
+          <div class='sendMainFile'>
+            <div class='sendFile'></div>
+            <input class='inputFile' type='file' accept="*" multiple>
+          </div>
+        </div>
         <!-- <input type="file" onchange="upload(this.files)" 
          accept='.pdf'/> -->
          <!-- <select class='select'>
            <option value='PDF' class='optionPdf'>PDF</option>
            <option value='TEXT' class='optionText' selected>TEXT</option>
          </select> -->
-         <button><i class="material-icons">send</i></button>
+         <button class='btn'><i class="material-icons">send</i></button>
       </form>
+      <div class='uploads'></div>
     </div>
     <!-- <div id="myModal" class="modal">
 
@@ -321,6 +359,7 @@
     var btnMore = document.querySelector('.moreBtn');
     var messageBlock = document.querySelector('.messageBlock');
     var mainHeader = document.querySelector('.mainHeader');
+    var inputFile = document.querySelector('.inputFile');
     // var select = document.querySelector('.select');
     // var optionPdf = select.querySelector('.optionPdf');
     // var optionText = select.querySelector('.optionText');
@@ -510,6 +549,17 @@
       messages.appendChild(div)
     }
 
+
+    inputFile.addEventListener("change", handleFiles, false);
+    // inputFile.addEventListener('change', (e) => {
+    //   console.log(this.files)
+    // })
+
+    function handleFiles() {
+        const fileList = this.files; /* now you can work with the file list */
+        const objectUrl =  window.URL.createObjectURL(fileList[0])
+        console.log(objectUrl)
+      }
 
     function upload(files) {
         socket.emit("upload", files[0], (status) => {
