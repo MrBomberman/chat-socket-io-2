@@ -99,7 +99,7 @@
       outline: none;
     }
 
-    #form>button {
+    .btn {
       background: #3668C5;
       border: 1px outset #3668C5;
       padding: 0 1rem;
@@ -284,7 +284,7 @@
     background-image: url('https://secure.delta-car.ch/img/websites/int/pictos/do/document_image_add-32.png');
   }
 
-  .sendMainFile > [type=file] {
+  .inputFile {
     opacity: 0;
     position: absolute;
     top: 9px;
@@ -293,6 +293,13 @@
     width: 32px;
   }
 
+  .sendFileBtn {
+    display: none;
+  }
+
+  .uploads {
+    display: flex;
+  }
   
   /* .btn {
     width: 25%;
@@ -312,36 +319,27 @@
       <!-- <div class='moreBtn'>More</div> -->
       <div id="messages"></div>
     </div>
-    <div>
-      <form id="form" action="">
+    <div class='senderBlock'>
+      <div id="form">
         <div class='fullInput'>
           <input class='textInput' id="input" autocomplete="off" disabled placeholder="..."/>        
           <div class='sendMainFile'>
             <div class='sendFile'></div>
-            <input class='inputFile' type='file' accept="*" multiple>
+            <form id="formUpload" method="POST" enctype="multipart/form-data" encoding="multipart/form-data" 
+            action="https://dev-fr.delta-car.ch/upload">
+              <input class='inputFile' name='File' type='file' accept="*" multiple="multiple"/>
+              <input class='sendFileBtn' type="submit" />
+            </form>
           </div>
         </div>
-        <!-- <input type="file" onchange="upload(this.files)" 
-         accept='.pdf'/> -->
-         <!-- <select class='select'>
-           <option value='PDF' class='optionPdf'>PDF</option>
-           <option value='TEXT' class='optionText' selected>TEXT</option>
-         </select> -->
-         <button class='btn'><i class="material-icons">send</i></button>
-      </form>
-      <div class='uploads'></div>
-    </div>
-    <!-- <div id="myModal" class="modal">
-
-     
-      <div class="modal-content">
-        <input id="inputForName" required placeholder="Type your phone..."/>
-        <div class="btnBlock">
-          <span class="close" id="closeModal">Close</span>
-          <span class="close" id="okModal">Ok</span>
-        </div>
+        <button class='btn'><i class="material-icons">send</i></button>
       </div>
-  </div> -->
+      <div class='uploads'></div>
+  </div>
+</div>
+
+
+
   <script src="/socket.io/socket.io.js"></script>
   <!-- <script type="module" src="/index.js"></script> -->
   <script>
@@ -360,11 +358,17 @@
     var messageBlock = document.querySelector('.messageBlock');
     var mainHeader = document.querySelector('.mainHeader');
     var inputFile = document.querySelector('.inputFile');
+    var uploads = document.querySelector('.uploads');
+    var subBtn = document.querySelector('.subBtn');
+    var sendFileBtn = document.querySelector('.sendFileBtn');
+    var formUpload = document.querySelector('#formUpload');
+    var btnToSendText = document.querySelector('.btn');
     // var select = document.querySelector('.select');
     // var optionPdf = select.querySelector('.optionPdf');
     // var optionText = select.querySelector('.optionText');
     var clientName;
     var agentName;
+    var xhr = new XMLHttpRequest();
 
     socket.emit('check url', window.location.href);
 
@@ -416,8 +420,15 @@
       // startBtn.disabled = true;
     })
 
+        
+    formUpload.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      console.log(data)
+    })
 
-    form.addEventListener('submit', async function (e) {
+
+    btnToSendText.addEventListener('click', async function (e) {
       e.preventDefault();
       let currentUserId = '';
       socket.on('user exist', (id) => {
@@ -427,7 +438,7 @@
       const indexOfStartId = window.location.href.indexOf('#');
       // console.log(indexOfStartId)
       currentUserId = window.location.href.slice(indexOfStartId+1)
-      console.log(currentUserId);
+      // console.log(currentUserId);
       // let messageStatus = select.value;
       if (input.value) {
         // await socket.emit('chat message', input.value , currentUserId, messageStatus);
@@ -435,6 +446,27 @@
         input.value = '';
       }
     });
+
+    input.addEventListener('keypress', async (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault()
+        let currentUserId = '';
+        socket.on('user exist', (id) => {
+          currentUser = id;
+        })
+
+        const indexOfStartId = window.location.href.indexOf('#');
+        // console.log(indexOfStartId)
+        currentUserId = window.location.href.slice(indexOfStartId+1)
+        // console.log(currentUserId);
+        // let messageStatus = select.value;
+        if (input.value) {
+          // await socket.emit('chat message', input.value , currentUserId, messageStatus);
+          await socket.emit('chat message', input.value , currentUserId);
+          input.value = '';
+        }
+      }
+    })
 
 
     window.onclick = function(event) {
@@ -551,15 +583,33 @@
 
 
     inputFile.addEventListener("change", handleFiles, false);
-    // inputFile.addEventListener('change', (e) => {
-    //   console.log(this.files)
-    // })
 
-    function handleFiles() {
-        const fileList = this.files; /* now you can work with the file list */
-        const objectUrl =  window.URL.createObjectURL(fileList[0])
-        console.log(objectUrl)
-      }
+    async function handleFiles() {
+        var newChild = document.createElement('div');
+        let divNumber = uploads.querySelectorAll('div');
+        newChild.style.display = 'flex';
+        newChild.style.flexDirection = 'column';
+        newChild.style.alignItems = 'center';
+        // console.log(divNumber.length)
+        newChild.setAttribute('id', `file${divNumber.length}`)
+        const reader = new FileReader()
+        let fileName = event.target.files[0].name
+        await xhr.open("POST", "http://bs315.ns.delta:6002/proxy");  
+        var formData = new FormData(formUpload); 
+        await xhr.send(formData);
+        xhr.onload = await function(event){ 
+            console.log(event.target.response)
+            newChild.innerHTML =  
+            `<img style="width: 100px; max-height: 100px; min-height:35px
+            " src="https://dev-fr.delta-car.ch${event.target.response}" title="${fileName}">
+            <span onclick="deleteElem(file${divNumber.length})">Delete</span>`
+            uploads.appendChild(newChild)
+        }; 
+    }
+
+    function deleteElem(id){
+      uploads.removeChild(id)
+    }
 
     function upload(files) {
         socket.emit("upload", files[0], (status) => {

@@ -15,6 +15,7 @@ const cors = require("cors");
 const getMessages = require('./utils/getMessages');
 const startConversation = require('./utils/startConversation');
 const postDocumentPDF = require('./utils/postDocumentPDF');
+const request = require('request');
 const logger = require('./utils/logger');
 const corsOptions ={
    origin:'*', 
@@ -47,6 +48,7 @@ app.get('/whatsapp', (req, res) => {
   // console.log('RES', res)
   res.sendFile(__dirname + '/images/whatsapp.png');
 });
+
 app.post('/postMessage', async (req, res) => {
   try {
     const users = getAllUsers();
@@ -121,6 +123,10 @@ app.post('/openChat', async (req, res) => {
     logger.error(`Error in openchat ${e}`)
     res.status(400).send(`Error! ${e}`)
   }
+})
+
+app.post('/proxy', async (req,res) => {
+  req.pipe(request.post('https://dev-fr.delta-car.ch/upload')).pipe(res);
 })
 
 io.on('connection', (client) => {
